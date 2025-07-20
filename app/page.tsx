@@ -1,530 +1,817 @@
 'use client';
 
-import type React from 'react';
-
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import {
-  Sparkles,
-  Dumbbell,
-  Heart,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import {
   Users,
-  MapPin,
-  Clock,
-  Mail,
+  TrendingUp,
+  MessageCircle,
+  Target,
+  Dumbbell,
+  Sparkles,
+  Star,
   CheckCircle,
-  XCircle,
-  Loader2,
-  Share2,
-  Twitter,
-  Linkedin,
-  Facebook,
-  Copy,
-  ArrowDown,
+  ArrowRight,
+  Play,
+  Shield,
+  Zap,
+  Award,
+  Clock,
+  MapPin,
+  ChevronDown,
+  Menu,
+  X,
 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 
-// Set your actual launch date here - UPDATE THE ENV VARIABLE WITH YOUR LAUNCH DATE
-const goLiveDate = process.env.NEXT_PUBLIC_LAUNCH_DATE ?? '2025-12-01';
-const LAUNCH_DATE = new Date(goLiveDate);
+const testimonials = [
+  {
+    name: 'Sarah Johnson',
+    role: 'Fitness Enthusiast',
+    image: 'SJ',
+    rating: 5,
+    text: "FuelForm connected me with the perfect trainer. I've lost 25 pounds and gained so much confidence!",
+    results: 'Lost 25 lbs in 3 months',
+  },
+  {
+    name: 'Mike Chen',
+    role: 'Busy Professional',
+    image: 'MC',
+    rating: 5,
+    text: "The custom workout plans fit perfectly into my hectic schedule. Best investment I've made!",
+    results: 'Gained 15 lbs muscle',
+  },
+  {
+    name: 'Emily Rodriguez',
+    role: 'New Mom',
+    image: 'ER',
+    rating: 5,
+    text: 'Post-pregnancy fitness journey made easy. My trainer understood exactly what I needed.',
+    results: 'Back to pre-baby weight',
+  },
+];
 
-interface WaitlistStats {
-  total: number;
-  trainers: number;
-  clients: number;
-  cities: number;
-  recentSignups: number;
-}
+const features = [
+  {
+    icon: Target,
+    title: 'Personalized Programs',
+    description:
+      'Custom workout and nutrition plans tailored to your specific goals, fitness level, and lifestyle.',
+    color: 'from-blue-500 to-purple-600',
+  },
+  {
+    icon: Users,
+    title: 'Expert Trainers',
+    description:
+      'Connect with certified professionals who have proven track records and verified credentials.',
+    color: 'from-purple-500 to-pink-600',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Progress Tracking',
+    description:
+      'Advanced analytics to monitor your transformation with detailed insights and milestone celebrations.',
+    color: 'from-pink-500 to-red-600',
+  },
+  {
+    icon: MessageCircle,
+    title: '24/7 Support',
+    description:
+      'Direct communication with your trainer plus community support whenever you need motivation.',
+    color: 'from-red-500 to-orange-600',
+  },
+  {
+    icon: Dumbbell,
+    title: 'Smart Workouts',
+    description:
+      'AI-powered exercise recommendations that adapt based on your progress and preferences.',
+    color: 'from-orange-500 to-yellow-600',
+  },
+  {
+    icon: Shield,
+    title: 'Secure Platform',
+    description:
+      'Your health data and payments are protected with enterprise-grade security and privacy.',
+    color: 'from-green-500 to-blue-600',
+  },
+];
 
-export default function ComingSoonPage() {
-  const [email, setEmail] = useState('');
-  const [countdown, setCountdown] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
-  const [isLaunched, setIsLaunched] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<
-    'idle' | 'success' | 'error'
-  >('idle');
-  const [stats, setStats] = useState<WaitlistStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const { toast } = useToast();
+const stats = [
+  { number: '10K+', label: 'Active Users', icon: Users },
+  { number: '500+', label: 'Certified Trainers', icon: Award },
+  { number: '50+', label: 'Cities Worldwide', icon: MapPin },
+  { number: '95%', label: 'Success Rate', icon: TrendingUp },
+];
 
-  const calculateTimeLeft = () => {
-    const difference = +LAUNCH_DATE - +new Date();
-    let timeLeft = {
-      days: 0,
-      hours: 0,
-      minutes: 0,
-      seconds: 0,
-    };
+const pricingPlans = [
+  {
+    name: 'Starter',
+    price: '$49',
+    period: '/month',
+    description: 'Perfect for beginners starting their fitness journey',
+    features: [
+      'Basic workout plans',
+      'Nutrition guidelines',
+      'Progress tracking',
+      'Community access',
+      'Email support',
+    ],
+    popular: false,
+    color: 'from-blue-500 to-purple-600',
+  },
+  {
+    name: 'Pro',
+    price: '$99',
+    period: '/month',
+    description: 'Most popular choice for serious fitness enthusiasts',
+    features: [
+      'Custom workout plans',
+      'Personalized nutrition',
+      '1-on-1 trainer sessions',
+      'Advanced analytics',
+      'Priority support',
+      'Meal planning tools',
+    ],
+    popular: true,
+    color: 'from-purple-500 to-pink-600',
+  },
+  {
+    name: 'Elite',
+    price: '$199',
+    period: '/month',
+    description: 'Premium experience with unlimited access',
+    features: [
+      'Unlimited trainer access',
+      'Custom meal prep',
+      'Weekly video calls',
+      'Supplement guidance',
+      '24/7 chat support',
+      'Exclusive community',
+      'Body composition analysis',
+    ],
+    popular: false,
+    color: 'from-pink-500 to-red-600',
+  },
+];
 
-    if (difference > 0) {
-      timeLeft = {
-        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / 1000 / 60) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    } else {
-      setIsLaunched(true);
-    }
-    return timeLeft;
-  };
+export default function LandingPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
 
   useEffect(() => {
-    setCountdown(calculateTimeLeft());
-    const timer = setInterval(() => {
-      setCountdown(calculateTimeLeft());
-    }, 1000);
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
 
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setStatsLoading(true);
-        const response = await fetch('/api/waitlist/stats');
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch waitlist stats: ${response.status} ${response.statusText}`
-          );
+    const handleSectionChange = () => {
+      const sections = ['hero', 'features', 'testimonials', 'pricing'];
+      const currentSection = sections.find((section) => {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          return rect.top <= 100 && rect.bottom >= 100;
         }
-        const data = await response.json();
-        setStats(data);
-      } catch (error: any) {
-        console.error('Error fetching waitlist stats:', error.message);
-        toast({
-          title: 'Error',
-          description: 'Failed to load waitlist statistics.',
-          variant: 'destructive',
-        });
-        // Fallback to dummy data if API fails
-        setStats({
-          total: 247,
-          trainers: 23,
-          clients: 224,
-          cities: 15,
-          recentSignups: 12,
-        });
-      } finally {
-        setStatsLoading(false);
+        return false;
+      });
+      if (currentSection) {
+        setActiveSection(currentSection);
       }
     };
-    fetchStats();
-    const statsInterval = setInterval(fetchStats, 30000);
-    return () => clearInterval(statsInterval);
-  }, [toast]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-
-    try {
-      const response = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (response.ok) {
-        setSubmitStatus('success');
-        setEmail('');
-        toast({
-          title: 'Success!',
-          description:
-            'You have been added to the waitlist. Get ready to transform!',
-          className:
-            'bg-gradient-to-r from-green-400 to-emerald-500 text-white',
-        });
-        // Refresh stats after successful signup
-        const statsResponse = await fetch('/api/waitlist/stats');
-        if (statsResponse.ok) {
-          const data = await statsResponse.json();
-          setStats(data);
-        }
-      } else {
-        const errorData = await response.json();
-        setSubmitStatus('error');
-        toast({
-          title: 'Error',
-          description:
-            errorData.error || 'Failed to join waitlist. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      setSubmitStatus('error');
-      toast({
-        title: 'Error',
-        description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const formattedLaunchDate = useMemo(() => {
-    return LAUNCH_DATE.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleSectionChange);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleSectionChange);
+    };
   }, []);
 
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const shareText =
-    'Get ready for FuelForm – the ultimate fitness platform! Join the waitlist now!';
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: 'Copied!',
-      description: 'Share link copied to clipboard.',
-    });
-  };
-
-  const scrollToDetails = () => {
-    document
-      .getElementById('details-section')
-      ?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToSection = (sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    setMobileMenuOpen(false);
   };
 
   return (
-    <div className='relative min-h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 text-white overflow-hidden'>
-      {/* Hero Section - Above the fold */}
-      <section className='relative z-10 min-h-screen flex flex-col items-center justify-center text-center space-y-8 max-w-4xl mx-auto px-4'>
-        {/* Logo */}
-        <div className='relative w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-2xl animate-pulse-slow'>
-          <Dumbbell className='w-12 h-12 text-white' />
+    <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden'>
+      {/* Animated Background Elements */}
+      <div className='fixed inset-0 z-0 opacity-20'>
+        <div className='absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl animate-blob'></div>
+        <div className='absolute top-1/3 right-1/4 w-64 h-64 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000'></div>
+        <div className='absolute bottom-1/4 left-1/3 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000'></div>
+      </div>
+
+      {/* Navigation */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-slate-900/95 backdrop-blur-lg border-b border-white/10'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className='container mx-auto px-4 py-4'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center space-x-2'>
+              <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center'>
+                <Dumbbell className='w-5 h-5 text-white' />
+              </div>
+              <span className='text-xl font-bold'>FuelForm</span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className='hidden md:flex items-center space-x-8'>
+              {[
+                { id: 'hero', label: 'Home' },
+                { id: 'features', label: 'Features' },
+                { id: 'testimonials', label: 'Reviews' },
+                { id: 'pricing', label: 'Pricing' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`text-sm font-medium transition-colors hover:text-purple-300 ${
+                    activeSection === item.id
+                      ? 'text-purple-300'
+                      : 'text-gray-300'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className='hidden md:flex items-center space-x-4'>
+              <Link href='/login'>
+                <Button
+                  variant='ghost'
+                  className='text-white hover:text-purple-300'
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link href='/signup'>
+                <Button className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'>
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className='md:hidden'>
+              <Button
+                variant='ghost'
+                size='icon'
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className='text-white'
+              >
+                {mobileMenuOpen ? (
+                  <X className='w-5 h-5' />
+                ) : (
+                  <Menu className='w-5 h-5' />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {mobileMenuOpen && (
+            <div className='md:hidden mt-4 pb-4 border-t border-white/10'>
+              <div className='flex flex-col space-y-4 pt-4'>
+                {[
+                  { id: 'hero', label: 'Home' },
+                  { id: 'features', label: 'Features' },
+                  { id: 'testimonials', label: 'Reviews' },
+                  { id: 'pricing', label: 'Pricing' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => scrollToSection(item.id)}
+                    className='text-left text-gray-300 hover:text-purple-300 transition-colors'
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <div className='flex flex-col space-y-2 pt-4 border-t border-white/10'>
+                  <Link href='/login'>
+                    <Button
+                      variant='ghost'
+                      className='w-full justify-start text-white'
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href='/signup'>
+                    <Button className='w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white border-0'>
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+      </nav>
 
-        {/* Hero Title - More concise */}
-        <div className='space-y-4'>
-          <h1 className='text-5xl md:text-7xl font-extrabold tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-300 via-pink-300 to-yellow-300 animate-fade-in'>
-            FuelForm is Coming Soon!
-          </h1>
-          <p className='text-xl md:text-2xl text-gray-200 max-w-2xl mx-auto animate-fade-in delay-100'>
-            Connect with certified trainers. Get custom workouts. Transform your
-            fitness journey.
-          </p>
-        </div>
-
-        {/* Countdown - More prominent */}
-        <Card className='w-full max-w-lg bg-white/15 backdrop-blur-lg border border-white/30 shadow-2xl animate-fade-in delay-200'>
-          <CardHeader>
-            <CardTitle className='text-3xl font-bold text-white flex items-center justify-center gap-3'>
-              <Clock className='w-8 h-8 text-purple-300' />
-              {isLaunched ? "We're Live!" : `Launch: ${formattedLaunchDate}`}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='pb-6'>
-            {isLaunched ? (
-              <div className='text-center text-4xl md:text-6xl font-extrabold text-green-400 animate-bounce-once'>
-                Welcome to FuelForm!
-              </div>
-            ) : (
-              <div className='grid grid-cols-4 gap-4 text-white'>
-                <div className='flex flex-col items-center'>
-                  <span className='text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300'>
-                    {String(countdown.days).padStart(2, '0')}
-                  </span>
-                  <span className='text-sm text-gray-300 mt-1'>Days</span>
-                </div>
-                <div className='flex flex-col items-center'>
-                  <span className='text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300'>
-                    {String(countdown.hours).padStart(2, '0')}
-                  </span>
-                  <span className='text-sm text-gray-300 mt-1'>Hours</span>
-                </div>
-                <div className='flex flex-col items-center'>
-                  <span className='text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300'>
-                    {String(countdown.minutes).padStart(2, '0')}
-                  </span>
-                  <span className='text-sm text-gray-300 mt-1'>Minutes</span>
-                </div>
-                <div className='flex flex-col items-center'>
-                  <span className='text-4xl md:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300'>
-                    {String(countdown.seconds).padStart(2, '0')}
-                  </span>
-                  <span className='text-sm text-gray-300 mt-1'>Seconds</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Enhanced CTA - More prominent */}
-        <div className='w-full max-w-lg bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-lg border-2 border-purple-400/50 shadow-2xl animate-fade-in delay-300 rounded-lg overflow-hidden'>
-          <div className='bg-transparent'>
-            <div className='text-center py-6 px-6 bg-transparent'>
-              <div className='text-3xl font-bold text-white flex items-center justify-center gap-3 mb-2'>
-                <Mail className='w-8 h-8 text-pink-300' />
-                Join the Waitlist
-              </div>
-              <p className='text-gray-200 text-center'>
-                Be the first to experience the future of fitness
+      {/* Hero Section */}
+      <section
+        id='hero'
+        className='relative z-10 min-h-screen flex items-center justify-center pt-20'
+      >
+        <div className='container mx-auto px-4 text-center'>
+          <div className='max-w-5xl mx-auto space-y-6'>
+            <div className='space-y-6 animate-fade-in delay-200'>
+              <h1 className='text-5xl md:text-7xl font-extrabold leading-tight'>
+                <span className='bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400'>
+                  Transform Your
+                </span>
+                <br />
+                <span className='text-white'>Fitness Journey</span>
+              </h1>
+              <p className='text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed'>
+                Connect with world-class personal trainers, get custom workout
+                plans, and achieve your fitness goals faster than ever before.
               </p>
             </div>
-            <div className='px-6 pb-6 bg-transparent'>
-              <form onSubmit={handleSubmit} className='space-y-4'>
-                <Input
-                  type='email'
-                  placeholder='Enter your email address'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className='h-12 bg-white/20 border-white/30 text-white placeholder:text-gray-300 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-lg backdrop-blur-sm'
-                />
+
+            {/* CTA Buttons */}
+            <div className='flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in delay-400'>
+              <Link href='/signup?type=client'>
                 <Button
-                  type='submit'
                   size='lg'
-                  className='w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold text-lg rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 border-0 !bg-gradient-to-r !from-purple-600 !to-blue-600'
-                  disabled={isSubmitting}
-                  style={{
-                    background:
-                      'linear-gradient(to right, rgb(147 51 234), rgb(37 99 235))',
-                    border: 'none',
-                  }}
+                  className='w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-lg font-semibold border-0 shadow-2xl transform hover:scale-105 transition-all duration-300'
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className='mr-2 h-5 w-5 animate-spin' />
-                      Joining Waitlist...
-                    </>
-                  ) : (
-                    'Get Early Access'
-                  )}
+                  Start Your Journey
+                  <ArrowRight className='ml-2 w-5 h-5' />
                 </Button>
-              </form>
-              {submitStatus === 'success' && (
-                <div className='mt-4 text-center text-green-400 flex items-center justify-center gap-2 animate-bounce-once'>
-                  <CheckCircle className='w-5 h-5' />
-                  <span className='font-semibold'>
-                    Successfully joined! Check your email.
-                  </span>
+              </Link>
+              {/* <Button
+                variant='outline'
+                size='lg'
+                className='w-full sm:w-auto h-14 px-8 bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg backdrop-blur-sm'
+                onClick={() => scrollToSection('features')}
+              >
+                <Play className='mr-2 w-5 h-5' />
+                Watch Demo
+              </Button> */}
+            </div>
+
+            {/* Stats */}
+            <div className='grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 animate-fade-in delay-600'>
+              {stats.map((stat, index) => (
+                <div key={index} className='text-center'>
+                  <div className='flex justify-center mb-2'>
+                    <stat.icon className='w-8 h-8 text-purple-400' />
+                  </div>
+                  <div className='text-3xl md:text-4xl font-bold text-white mb-1'>
+                    {stat.number}
+                  </div>
+                  <div className='text-sm text-gray-400'>{stat.label}</div>
                 </div>
-              )}
-              {submitStatus === 'error' && (
-                <div className='mt-4 text-center text-red-400 flex items-center justify-center gap-2 animate-shake'>
-                  <XCircle className='w-5 h-5' />
-                  <span>Something went wrong. Please try again.</span>
-                </div>
-              )}
+              ))}
+            </div>
+
+            {/* Scroll Indicator */}
+            <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce'>
+              <ChevronDown className='w-6 h-6 text-gray-400' />
             </div>
           </div>
         </div>
-
-        {/* Scroll indicator */}
-        <Button
-          variant='ghost'
-          onClick={scrollToDetails}
-          className='mt-8 text-white/70 hover:text-white animate-bounce'
-        >
-          <ArrowDown className='w-6 h-6' />
-        </Button>
       </section>
 
-      {/* Details Section - Below the fold */}
-      <section id='details-section' className='relative z-10 py-16 px-4'>
-        <div className='max-w-4xl mx-auto space-y-12'>
-          {/* Waitlist Progress */}
-          <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
-            <CardHeader>
-              <CardTitle className='text-2xl font-bold text-white flex items-center justify-center gap-2'>
-                <Users className='w-6 h-6 text-yellow-300' />
-                Join {stats?.total.toLocaleString()} Others Waiting
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-6'>
-              {statsLoading ? (
-                <div className='flex justify-center items-center py-4'>
-                  <Loader2 className='h-8 w-8 animate-spin text-gray-300' />
-                </div>
-              ) : (
-                <>
-                  <div className='text-center'>
-                    <div className='text-4xl font-bold text-white mb-2'>
-                      {stats?.total.toLocaleString()}
-                    </div>
-                    <Progress
-                      value={((stats?.total || 0) / 1000) * 100}
-                      className='h-3 bg-white/20 [&>div]:bg-gradient-to-r [&>div]:from-yellow-400 [&>div]:to-orange-500'
-                    />
-                    <div className='text-sm text-gray-300 mt-2'>
-                      Goal: 1,000 members
-                    </div>
-                  </div>
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-center'>
-                    <div className='space-y-2'>
-                      <Dumbbell className='w-6 h-6 text-purple-300 mx-auto' />
-                      <div className='text-2xl font-bold text-white'>
-                        {stats?.trainers}
-                      </div>
-                      <div className='text-sm text-gray-300'>Trainers</div>
-                    </div>
-                    <div className='space-y-2'>
-                      <Heart className='w-6 h-6 text-pink-300 mx-auto' />
-                      <div className='text-2xl font-bold text-white'>
-                        {stats?.clients}
-                      </div>
-                      <div className='text-sm text-gray-300'>Clients</div>
-                    </div>
-                    <div className='space-y-2'>
-                      <MapPin className='w-6 h-6 text-blue-300 mx-auto' />
-                      <div className='text-2xl font-bold text-white'>
-                        {stats?.cities}
-                      </div>
-                      <div className='text-sm text-gray-300'>Cities</div>
-                    </div>
-                    <div className='space-y-2'>
-                      <Clock className='w-6 h-6 text-green-300 mx-auto' />
-                      <div className='text-2xl font-bold text-white'>
-                        {stats?.recentSignups}
-                      </div>
-                      <div className='text-sm text-gray-300'>Today</div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+      {/* Features Section */}
+      <section
+        id='features'
+        className='relative z-10 py-24 bg-gradient-to-b from-transparent to-slate-900/50'
+      >
+        <div className='container mx-auto px-4'>
+          <div className='text-center mb-16'>
+            <Badge className='mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30'>
+              Features
+            </Badge>
+            <h2 className='text-4xl md:text-5xl font-bold text-white mb-6'>
+              Everything You Need to
+              <span className='bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400'>
+                {' '}
+                Succeed
+              </span>
+            </h2>
+            <p className='text-xl text-gray-300 max-w-3xl mx-auto'>
+              Our comprehensive platform combines cutting-edge technology with
+              human expertise to deliver results that exceed your expectations.
+            </p>
+          </div>
 
-          {/* Simplified Timeline */}
-          <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
-            <CardHeader>
-              <CardTitle className='text-2xl font-bold text-white text-center'>
-                What's Coming
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='grid md:grid-cols-3 gap-6'>
-                <div className='text-center space-y-3'>
-                  <div className='w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mx-auto'>
-                    <Users className='w-6 h-6 text-white' />
+          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+            {features.map((feature, index) => (
+              <Card
+                key={index}
+                className='group bg-white/5 backdrop-blur-lg border border-white/10 hover:border-white/20 transition-all duration-500 hover:transform hover:scale-105 hover:shadow-2xl'
+              >
+                <CardHeader className='pb-4'>
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <feature.icon className='w-6 h-6 text-white' />
                   </div>
-                  <h3 className='text-lg font-bold text-white'>
-                    Find Your Trainer
-                  </h3>
-                  <p className='text-gray-300 text-sm'>
-                    Browse certified trainers and find your perfect match
-                  </p>
-                </div>
-                <div className='text-center space-y-3'>
-                  <div className='w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center mx-auto'>
-                    <Dumbbell className='w-6 h-6 text-white' />
-                  </div>
-                  <h3 className='text-lg font-bold text-white'>
-                    Custom Programs
-                  </h3>
-                  <p className='text-gray-300 text-sm'>
-                    Get personalized workouts and nutrition plans
-                  </p>
-                </div>
-                <div className='text-center space-y-3'>
-                  <div className='w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-pink-500 flex items-center justify-center mx-auto'>
-                    <Heart className='w-6 h-6 text-white' />
-                  </div>
-                  <h3 className='text-lg font-bold text-white'>
-                    Track Progress
-                  </h3>
-                  <p className='text-gray-300 text-sm'>
-                    Monitor your transformation with detailed analytics
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Share Section */}
-          <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
-            <CardHeader>
-              <CardTitle className='text-2xl font-bold text-white flex items-center justify-center gap-2'>
-                <Share2 className='w-6 h-6 text-cyan-300' />
-                Spread the Word
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className='text-gray-200 text-center mb-6'>
-                Help us reach our goal faster! Share FuelForm with friends who
-                love fitness.
-              </p>
-              <div className='flex justify-center gap-4'>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-blue-500 hover:bg-blue-600 text-white rounded-full w-12 h-12 transition-all duration-300 ease-in-out transform hover:scale-110'
-                  onClick={() =>
-                    window.open(
-                      `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                        shareText
-                      )}&url=${encodeURIComponent(shareUrl)}`,
-                      '_blank'
-                    )
-                  }
-                >
-                  <Twitter className='w-5 h-5' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-blue-700 hover:bg-blue-800 text-white rounded-full w-12 h-12 transition-all duration-300 ease-in-out transform hover:scale-110'
-                  onClick={() =>
-                    window.open(
-                      `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(
-                        shareUrl
-                      )}&title=${encodeURIComponent(shareText)}`,
-                      '_blank'
-                    )
-                  }
-                >
-                  <Linkedin className='w-5 h-5' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-blue-800 hover:bg-blue-900 text-white rounded-full w-12 h-12 transition-all duration-300 ease-in-out transform hover:scale-110'
-                  onClick={() =>
-                    window.open(
-                      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                        shareUrl
-                      )}`,
-                      '_blank'
-                    )
-                  }
-                >
-                  <Facebook className='w-5 h-5' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='icon'
-                  className='bg-gray-600 hover:bg-gray-700 text-white rounded-full w-12 h-12 transition-all duration-300 ease-in-out transform hover:scale-110'
-                  onClick={copyToClipboard}
-                >
-                  <Copy className='w-5 h-5' />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <CardTitle className='text-xl font-bold text-white group-hover:text-purple-300 transition-colors'>
+                    {feature.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className='text-gray-300 leading-relaxed'>
+                    {feature.description}
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-
-        {/* Footer */}
-        <footer className='mt-16 text-center text-gray-400 text-sm'>
-          &copy; {new Date().getFullYear()} FuelForm. All rights reserved.
-        </footer>
       </section>
+
+      {/* Testimonials Section */}
+      <section
+        id='testimonials'
+        className='relative z-10 py-24 bg-gradient-to-b from-slate-900/50 to-transparent'
+      >
+        <div className='container mx-auto px-4'>
+          <div className='text-center mb-16'>
+            <Badge className='mb-4 bg-pink-500/20 text-pink-300 border-pink-500/30'>
+              Success Stories
+            </Badge>
+            <h2 className='text-4xl md:text-5xl font-bold text-white mb-6'>
+              Real People,
+              <span className='bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-yellow-400'>
+                {' '}
+                Real Results
+              </span>
+            </h2>
+            <p className='text-xl text-gray-300 max-w-3xl mx-auto'>
+              Join thousands of people who have transformed their lives with
+              FuelForm. Your success story could be next.
+            </p>
+          </div>
+
+          <div className='grid md:grid-cols-3 gap-8'>
+            {testimonials.map((testimonial, index) => (
+              <Card
+                key={index}
+                className='bg-white/5 backdrop-blur-lg border border-white/10 hover:border-white/20 transition-all duration-300 hover:transform hover:scale-105'
+              >
+                <CardHeader>
+                  <div className='flex items-center space-x-4 mb-4'>
+                    <div className='w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold'>
+                      {testimonial.image}
+                    </div>
+                    <div>
+                      <h4 className='font-semibold text-white'>
+                        {testimonial.name}
+                      </h4>
+                      <p className='text-sm text-gray-400'>
+                        {testimonial.role}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex space-x-1 mb-4'>
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className='w-4 h-4 fill-yellow-400 text-yellow-400'
+                      />
+                    ))}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className='text-gray-300 mb-4 italic'>
+                    "{testimonial.text}"
+                  </p>
+                  <div className='bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-3 border border-green-500/30'>
+                    <p className='text-green-300 font-semibold text-sm'>
+                      ✨ {testimonial.results}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Trust Indicators */}
+          <div className='mt-16 text-center'>
+            <div className='flex flex-wrap justify-center items-center gap-8 opacity-60'>
+              <div className='flex items-center space-x-2'>
+                <Shield className='w-5 h-5 text-green-400' />
+                <span className='text-sm text-gray-300'>SSL Secured</span>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <Award className='w-5 h-5 text-yellow-400' />
+                <span className='text-sm text-gray-300'>
+                  Certified Trainers
+                </span>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <Clock className='w-5 h-5 text-blue-400' />
+                <span className='text-sm text-gray-300'>24/7 Support</span>
+              </div>
+              <div className='flex items-center space-x-2'>
+                <Zap className='w-5 h-5 text-purple-400' />
+                <span className='text-sm text-gray-300'>Instant Access</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section
+        id='pricing'
+        className='relative z-10 py-24 bg-gradient-to-b from-transparent to-slate-900'
+      >
+        <div className='container mx-auto px-4'>
+          <div className='text-center mb-16'>
+            <Badge className='mb-4 bg-yellow-500/20 text-yellow-300 border-yellow-500/30'>
+              Pricing
+            </Badge>
+            <h2 className='text-4xl md:text-5xl font-bold text-white mb-6'>
+              Choose Your
+              <span className='bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-400'>
+                {' '}
+                Perfect Plan
+              </span>
+            </h2>
+            <p className='text-xl text-gray-300 max-w-3xl mx-auto'>
+              Flexible pricing options designed to fit your budget and fitness
+              goals. Start free, upgrade anytime.
+            </p>
+          </div>
+
+          <div className='grid md:grid-cols-3 gap-8 max-w-6xl mx-auto'>
+            {pricingPlans.map((plan, index) => (
+              <Card
+                key={index}
+                className={`relative bg-white/5 backdrop-blur-lg border transition-all duration-300 hover:transform hover:scale-105 ${
+                  plan.popular
+                    ? 'border-purple-500/50 shadow-2xl shadow-purple-500/20 scale-105'
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                {plan.popular && (
+                  <div className='absolute -top-4 left-1/2 transform -translate-x-1/2'>
+                    <Badge className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1'>
+                      Most Popular
+                    </Badge>
+                  </div>
+                )}
+
+                <CardHeader className='text-center pb-4'>
+                  <div
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${plan.color} flex items-center justify-center mx-auto mb-4`}
+                  >
+                    <Dumbbell className='w-8 h-8 text-white' />
+                  </div>
+                  <CardTitle className='text-2xl font-bold text-white'>
+                    {plan.name}
+                  </CardTitle>
+                  <div className='flex items-baseline justify-center space-x-1 mt-4'>
+                    <span className='text-4xl font-bold text-white'>
+                      {plan.price}
+                    </span>
+                    <span className='text-gray-400'>{plan.period}</span>
+                  </div>
+                  <CardDescription className='text-gray-300 mt-2'>
+                    {plan.description}
+                  </CardDescription>
+                </CardHeader>
+
+                <CardContent className='space-y-6'>
+                  <ul className='space-y-3'>
+                    {plan.features.map((feature, featureIndex) => (
+                      <li
+                        key={featureIndex}
+                        className='flex items-center space-x-3'
+                      >
+                        <CheckCircle className='w-5 h-5 text-green-400 flex-shrink-0' />
+                        <span className='text-gray-300'>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link href={`/signup?plan=${plan.name.toLowerCase()}`}>
+                    <Button
+                      className={`w-full h-12 font-semibold transition-all duration-300 ${
+                        plan.popular
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg'
+                          : 'bg-white/10 border border-white/30 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      Get Started
+                      <ArrowRight className='ml-2 w-4 h-4' />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Money Back Guarantee */}
+          <div className='text-center mt-12'>
+            <div className='inline-flex items-center space-x-2 bg-green-500/20 border border-green-500/30 rounded-full px-6 py-3'>
+              <Shield className='w-5 h-5 text-green-400' />
+              <span className='text-green-300 font-medium'>
+                30-day money-back guarantee
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className='relative z-10 py-24 bg-gradient-to-r from-purple-900 via-blue-900 to-purple-900'>
+        <div className='container mx-auto px-4 text-center'>
+          <div className='max-w-4xl mx-auto space-y-8'>
+            <h2 className='text-4xl md:text-6xl font-bold text-white'>
+              Ready to
+              <span className='bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-400'>
+                {' '}
+                Transform?
+              </span>
+            </h2>
+            <p className='text-xl text-gray-300 max-w-2xl mx-auto'>
+              Join thousands of people who have already started their fitness
+              transformation. Your journey to a healthier, stronger you starts
+              today.
+            </p>
+            <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+              <Link href='/signup?type=client'>
+                <Button
+                  size='lg'
+                  className='w-full sm:w-auto h-16 px-12 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-xl font-bold border-0 shadow-2xl transform hover:scale-105 transition-all duration-300'
+                >
+                  Start Free Trial
+                  <Sparkles className='ml-2 w-6 h-6' />
+                </Button>
+              </Link>
+              <Link href='/signup?type=trainer'>
+                <Button
+                  variant='outline'
+                  size='lg'
+                  className='w-full sm:w-auto h-16 px-12 bg-white/10 border-white/30 text-white hover:bg-white/20 text-xl backdrop-blur-sm'
+                >
+                  Become a Trainer
+                  <Users className='ml-2 w-6 h-6' />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className='relative z-10 bg-slate-900 border-t border-white/10 py-12'>
+        <div className='container mx-auto px-4'>
+          <div className='grid md:grid-cols-4 gap-8'>
+            <div className='space-y-4'>
+              <div className='flex items-center space-x-2'>
+                <div className='w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center'>
+                  <Dumbbell className='w-5 h-5 text-white' />
+                </div>
+                <span className='text-xl font-bold text-white'>FuelForm</span>
+              </div>
+              <p className='text-gray-400'>
+                Transform your fitness journey with personalized training and
+                expert guidance.
+              </p>
+            </div>
+
+            <div>
+              <h4 className='font-semibold text-white mb-4'>Product</h4>
+              <ul className='space-y-2 text-gray-400'>
+                <li>
+                  <Link
+                    href='/features'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/pricing'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/trainers'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Find Trainers
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/mobile'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Mobile App
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className='font-semibold text-white mb-4'>Company</h4>
+              <ul className='space-y-2 text-gray-400'>
+                <li>
+                  <Link
+                    href='/about'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/careers'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/blog'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/contact'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className='font-semibold text-white mb-4'>Support</h4>
+              <ul className='space-y-2 text-gray-400'>
+                <li>
+                  <Link
+                    href='/help'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/privacy'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/terms'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href='/security'
+                    className='hover:text-purple-300 transition-colors'
+                  >
+                    Security
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className='border-t border-white/10 mt-12 pt-8 text-center text-gray-400'>
+            <p>
+              &copy; {new Date().getFullYear()} FuelForm. All rights reserved.
+              Built with ❤️ for fitness enthusiasts worldwide.
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* Enhanced CSS for animations */}
       <style jsx>{`
@@ -542,14 +829,14 @@ export default function ComingSoonPage() {
           animation: fadeIn 1s ease-out forwards;
           opacity: 0;
         }
-        .delay-100 {
-          animation-delay: 0.1s;
-        }
         .delay-200 {
           animation-delay: 0.2s;
         }
-        .delay-300 {
-          animation-delay: 0.3s;
+        .delay-400 {
+          animation-delay: 0.4s;
+        }
+        .delay-600 {
+          animation-delay: 0.6s;
         }
 
         @keyframes float {
@@ -586,46 +873,28 @@ export default function ComingSoonPage() {
           animation: pulseSlow 4s infinite ease-in-out;
         }
 
-        @keyframes bounceOnce {
-          0%,
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
           100% {
-            transform: translateY(0);
-          }
-          25% {
-            transform: translateY(-10px);
-          }
-          50% {
-            transform: translateY(0);
-          }
-          75% {
-            transform: translateY(-5px);
+            transform: translate(0px, 0px) scale(1);
           }
         }
-        .animate-bounce-once {
-          animation: bounceOnce 0.8s ease-out;
+        .animate-blob {
+          animation: blob 7s infinite;
         }
-
-        @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          10%,
-          30%,
-          50%,
-          70%,
-          90% {
-            transform: translateX(-5px);
-          }
-          20%,
-          40%,
-          60%,
-          80% {
-            transform: translateX(5px);
-          }
+        .animation-delay-2000 {
+          animation-delay: 2s;
         }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
       `}</style>
     </div>
