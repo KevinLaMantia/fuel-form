@@ -75,6 +75,11 @@ export default function LoginPage() {
     }
   };
 
+  const handleRememberMe = (checked: boolean) => {
+    // Convert to boolean if necessary
+    setRememberMe(checked === true);
+  };
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4'>
       <div className='w-full max-w-md'>
@@ -162,7 +167,7 @@ export default function LoginPage() {
                   <Checkbox
                     id='remember'
                     checked={rememberMe}
-                    onCheckedChange={setRememberMe}
+                    onCheckedChange={handleRememberMe}
                     className='border-white/30'
                   />
                   <Label htmlFor='remember' className='text-sm text-gray-300'>
