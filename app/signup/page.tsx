@@ -502,7 +502,9 @@ export default function SignUpPage() {
                 <Checkbox
                   id='terms'
                   checked={agreedToTerms}
-                  onCheckedChange={setAgreedToTerms}
+                  onCheckedChange={(checked) =>
+                    setAgreedToTerms(checked === true)
+                  }
                   className='border-white/30'
                 />
                 <Label htmlFor='terms' className='text-sm text-gray-300'>
