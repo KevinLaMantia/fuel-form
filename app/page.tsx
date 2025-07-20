@@ -331,7 +331,7 @@ export default function ComingSoonPage() {
         <Button
           variant='ghost'
           onClick={scrollToDetails}
-          className='mt-8 text-white/70 hover:text-black animate-bounce'
+          className='mt-8 text-white/70 hover:text-white animate-bounce'
         >
           <ArrowDown className='w-6 h-6' />
         </Button>
