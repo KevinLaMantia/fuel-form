@@ -270,7 +270,7 @@ export default function LandingPage() {
                 variant='ghost'
                 size='icon'
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className='text-white backdrop-blur-xl'
+                className='text-white'
               >
                 {mobileMenuOpen ? (
                   <X className='w-5 h-5' />
@@ -352,7 +352,7 @@ export default function LandingPage() {
                   <ArrowRight className='ml-2 w-5 h-5' />
                 </Button>
               </Link>
-              {/* <Button
+              <Button
                 variant='outline'
                 size='lg'
                 className='w-full sm:w-auto h-14 px-8 bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg backdrop-blur-sm'
@@ -360,7 +360,7 @@ export default function LandingPage() {
               >
                 <Play className='mr-2 w-5 h-5' />
                 Watch Demo
-              </Button> */}
+              </Button>
             </div>
 
             {/* Stats */}
