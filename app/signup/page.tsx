@@ -93,6 +93,9 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log('Form submission started');
+
     if (!agreedToTerms) {
       toast({
         title: 'Terms Required',
@@ -111,34 +114,78 @@ export default function SignUpPage() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      toast({
+        title: 'Password Too Short',
+        description: 'Password must be at least 6 characters long.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsLoading(true);
+
     try {
+      const requestData = {
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.fullName,
+        userType,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        plan,
+        // Include user-type specific data
+        ...(userType === 'client'
+          ? {
+              fitnessGoals: formData.fitnessGoals,
+              experienceLevel: formData.experienceLevel,
+              medicalConditions: formData.medicalConditions,
+            }
+          : {
+              certifications: formData.certifications,
+              specializations: formData.specializations,
+              experience: formData.experience,
+              bio: formData.bio,
+              hourlyRate: formData.hourlyRate,
+            }),
+      };
+
+      console.log('Sending signup request:', {
+        ...requestData,
+        password: '[REDACTED]',
+      });
+
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          userType,
-          plan,
-        }),
+        body: JSON.stringify(requestData),
       });
+
+      const result = await response.json();
+      console.log('Signup response:', result);
 
       if (response.ok) {
         toast({
           title: 'Account Created! 🎉',
-          description: 'Please check your email to verify your account.',
+          description:
+            result.message || 'Please check your email to verify your account.',
         });
-        router.push('/onboarding');
+
+        // Small delay to ensure session is established
+        setTimeout(() => {
+          window.location.href = '/onboarding';
+        }, 1000);
       } else {
-        const error = await response.json();
+        console.error('Signup failed:', result);
         toast({
           title: 'Sign Up Failed',
           description:
-            error.message || 'Something went wrong. Please try again.',
+            result.error || 'Something went wrong. Please try again.',
           variant: 'destructive',
         });
       }
     } catch (error) {
+      console.error('Network error during signup:', error);
       toast({
         title: 'Network Error',
         description: 'Please check your connection and try again.',
@@ -240,7 +287,7 @@ export default function SignUpPage() {
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   <div className='space-y-2'>
                     <Label htmlFor='fullName' className='text-white'>
-                      Full Name
+                      Full Name *
                     </Label>
                     <Input
                       id='fullName'
@@ -257,7 +304,7 @@ export default function SignUpPage() {
 
                   <div className='space-y-2'>
                     <Label htmlFor='email' className='text-white'>
-                      Email Address
+                      Email Address *
                     </Label>
                     <Input
                       id='email'
@@ -287,7 +334,6 @@ export default function SignUpPage() {
                       }
                       className='bg-white/10 border-white/30 text-white placeholder:text-gray-400'
                       placeholder='Enter your phone number'
-                      required
                     />
                   </div>
 
@@ -303,7 +349,6 @@ export default function SignUpPage() {
                         handleInputChange('dateOfBirth', e.target.value)
                       }
                       className='bg-white/10 border-white/30 text-white'
-                      required
                     />
                   </div>
                 </div>
@@ -311,7 +356,7 @@ export default function SignUpPage() {
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   <div className='space-y-2'>
                     <Label htmlFor='password' className='text-white'>
-                      Password
+                      Password *
                     </Label>
                     <div className='relative'>
                       <Input
@@ -324,6 +369,7 @@ export default function SignUpPage() {
                         className='bg-white/10 border-white/30 text-white placeholder:text-gray-400 pr-10'
                         placeholder='Create a strong password'
                         required
+                        minLength={6}
                       />
                       <Button
                         type='button'
@@ -343,7 +389,7 @@ export default function SignUpPage() {
 
                   <div className='space-y-2'>
                     <Label htmlFor='confirmPassword' className='text-white'>
-                      Confirm Password
+                      Confirm Password *
                     </Label>
                     <div className='relative'>
                       <Input
@@ -356,6 +402,7 @@ export default function SignUpPage() {
                         className='bg-white/10 border-white/30 text-white placeholder:text-gray-400 pr-10'
                         placeholder='Confirm your password'
                         required
+                        minLength={6}
                       />
                       <Button
                         type='button'
@@ -468,7 +515,7 @@ export default function SignUpPage() {
                   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                     <div className='space-y-2'>
                       <Label htmlFor='certifications' className='text-white'>
-                        Certifications
+                        Certifications *
                       </Label>
                       <Input
                         id='certifications'
@@ -479,13 +526,13 @@ export default function SignUpPage() {
                         }
                         className='bg-white/10 border-white/30 text-white placeholder:text-gray-400'
                         placeholder='e.g., NASM, ACE, ACSM'
-                        required
+                        required={userType === 'trainer'}
                       />
                     </div>
 
                     <div className='space-y-2'>
                       <Label htmlFor='experience' className='text-white'>
-                        Years of Experience
+                        Years of Experience *
                       </Label>
                       <Select
                         onValueChange={(value) =>
@@ -537,6 +584,7 @@ export default function SignUpPage() {
                         className='bg-white/10 border-white/30 text-white placeholder:text-gray-400'
                         placeholder='Your hourly rate'
                         min='0'
+                        step='0.01'
                       />
                     </div>
                   </div>

@@ -270,7 +270,7 @@ export default function LandingPage() {
                 variant='ghost'
                 size='icon'
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className='text-white'
+                className='text-white backdrop-blur-xl'
               >
                 {mobileMenuOpen ? (
                   <X className='w-5 h-5' />
@@ -283,7 +283,7 @@ export default function LandingPage() {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className='md:hidden mt-4 pb-4 border-t border-white/10'>
+            <div className='md:hidden mt-4 pb-4 border-t border-white/10 bg-slate-900/95 backdrop-blur-lg rounded-lg mx-4 px-4'>
               <div className='flex flex-col space-y-4 pt-4'>
                 {[
                   { id: 'hero', label: 'Home' },
