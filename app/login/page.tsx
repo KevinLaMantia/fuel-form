@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { Dumbbell, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,6 +31,30 @@ export default function LoginPage() {
     password: '',
   });
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        console.log(
+          'Login page - Initial session check:',
+          session?.user?.email || 'no session'
+        );
+
+        if (session?.user) {
+          console.log('User already logged in, redirecting to dashboard');
+          router.replace('/dashboard');
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      }
+    };
+    checkUser();
+  }, [router]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -39,32 +64,55 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          rememberMe,
-        }),
+      console.log('Attempting login for:', formData.email);
+
+      // Use Supabase client directly
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: 'Welcome back! 👋',
-          description: 'You have been successfully logged in.',
-        });
-        router.push('/dashboard');
-      } else {
-        const error = await response.json();
+      if (error) {
+        console.error('Login error:', error);
         toast({
           title: 'Login Failed',
           description:
             error.message || 'Invalid email or password. Please try again.',
           variant: 'destructive',
         });
+        return;
       }
-    } catch (error) {
+
+      if (!data.user || !data.session) {
+        console.error('No user or session data returned');
+        toast({
+          title: 'Login Failed',
+          description: 'No user data returned. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      console.log('Login successful for user:', data.user.email);
+      console.log('Session created:', !!data.session);
+      console.log(
+        'Access token:',
+        data.session.access_token ? 'present' : 'missing'
+      );
+
+      toast({
+        title: 'Welcome back! 👋',
+        description: 'You have been successfully logged in.',
+      });
+
+      // Wait a moment for the session to be fully established
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Force a page refresh to ensure middleware picks up the session
+      console.log('Redirecting to dashboard...');
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: 'Network Error',
         description: 'Please check your connection and try again.',
@@ -73,11 +121,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleRememberMe = (checked: boolean) => {
-    // Convert to boolean if necessary
-    setRememberMe(checked === true);
   };
 
   return (
@@ -167,7 +210,6 @@ export default function LoginPage() {
                   <Checkbox
                     id='remember'
                     checked={rememberMe}
-                    // onCheckedChange={handleRememberMe}
                     onCheckedChange={(checked) =>
                       setRememberMe(checked === true)
                     }

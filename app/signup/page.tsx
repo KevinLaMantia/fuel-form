@@ -40,9 +40,12 @@ import {
 export default function SignUpPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userType = searchParams.get('type') || 'client';
+  const initialUserType = searchParams.get('type') || 'client';
   const plan = searchParams.get('plan');
 
+  const [userType, setUserType] = useState<'client' | 'trainer'>(
+    initialUserType as 'client' | 'trainer'
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -68,6 +71,24 @@ export default function SignUpPage() {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleUserTypeChange = (newUserType: 'client' | 'trainer') => {
+    setUserType(newUserType);
+    // Clear user-type specific fields when switching
+    setFormData((prev) => ({
+      ...prev,
+      // Reset client fields
+      fitnessGoals: '',
+      experienceLevel: '',
+      medicalConditions: '',
+      // Reset trainer fields
+      certifications: '',
+      specializations: '',
+      experience: '',
+      bio: '',
+      hourlyRate: '',
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,23 +161,46 @@ export default function SignUpPage() {
             <span className='text-2xl font-bold text-white'>FuelForm</span>
           </Link>
 
+          {/* User Type Toggle */}
           <div className='flex justify-center mb-6'>
-            <Badge
-              variant={userType === 'client' ? 'default' : 'secondary'}
-              className='bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2'
-            >
-              {userType === 'client' ? (
-                <>
+            <div className='bg-white/10 backdrop-blur-lg rounded-lg p-1 border border-white/20'>
+              <div className='flex'>
+                <Button
+                  type='button'
+                  variant={userType === 'client' ? 'default' : 'ghost'}
+                  size='sm'
+                  onClick={() => handleUserTypeChange('client')}
+                  className={`
+                    px-6 py-2 rounded-md transition-all duration-200
+                    ${
+                      userType === 'client'
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
                   <User className='w-4 h-4 mr-2' />
-                  Client Registration
-                </>
-              ) : (
-                <>
+                  Client
+                </Button>
+                <Button
+                  type='button'
+                  variant={userType === 'trainer' ? 'default' : 'ghost'}
+                  size='sm'
+                  onClick={() => handleUserTypeChange('trainer')}
+                  className={`
+                    px-6 py-2 rounded-md transition-all duration-200
+                    ${
+                      userType === 'trainer'
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
+                        : 'text-white/70 hover:text-white hover:bg-white/10'
+                    }
+                  `}
+                >
                   <Users className='w-4 h-4 mr-2' />
-                  Trainer Registration
-                </>
-              )}
-            </Badge>
+                  Trainer
+                </Button>
+              </div>
+            </div>
           </div>
 
           {plan && (
@@ -368,6 +412,7 @@ export default function SignUpPage() {
                         onValueChange={(value) =>
                           handleInputChange('experienceLevel', value)
                         }
+                        value={formData.experienceLevel}
                       >
                         <SelectTrigger className='bg-white/10 border-white/30 text-white'>
                           <SelectValue placeholder='Select your experience level' />
@@ -446,6 +491,7 @@ export default function SignUpPage() {
                         onValueChange={(value) =>
                           handleInputChange('experience', value)
                         }
+                        value={formData.experience}
                       >
                         <SelectTrigger className='bg-white/10 border-white/30 text-white'>
                           <SelectValue placeholder='Select experience' />

@@ -33,8 +33,25 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log("Middleware - Path:", request.nextUrl.pathname, "User:", user?.email || "no user")
+  console.log(
+    "Middleware - Cookies:",
+    request.cookies
+      .getAll()
+      .map((c) => c.name)
+      .join(", "),
+  )
+
   // Protect authenticated routes
   if (request.nextUrl.pathname.startsWith("/dashboard") && !user) {
+    console.log("Middleware - Redirecting to login (no user for dashboard)")
+    const url = request.nextUrl.clone()
+    url.pathname = "/login"
+    return NextResponse.redirect(url)
+  }
+
+  if (request.nextUrl.pathname.startsWith("/settings") && !user) {
+    console.log("Middleware - Redirecting to login (no user for settings)")
     const url = request.nextUrl.clone()
     url.pathname = "/login"
     return NextResponse.redirect(url)
@@ -42,6 +59,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if ((request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/signup") && user) {
+    console.log("Middleware - Redirecting to dashboard (user on auth page)")
     const url = request.nextUrl.clone()
     url.pathname = "/dashboard"
     return NextResponse.redirect(url)

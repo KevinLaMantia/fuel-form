@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         },
       },
     })
-
+    console.log("Auth data:", authData);
     if (authError) {
       console.error("Auth signup error:", authError)
       if (authError.message?.includes("User already registered")) {
