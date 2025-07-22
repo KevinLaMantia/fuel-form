@@ -15,7 +15,7 @@ import {
   Smile,
 } from 'lucide-react';
 import { NavigationHeader } from '@/components/navigation-header';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, type User } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
 const conversations = [
@@ -98,7 +98,7 @@ export default function MessagesPage() {
   );
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -146,7 +146,7 @@ export default function MessagesPage() {
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
       <NavigationHeader user={user} />
 
-      <div className='container mx-auto px-4 py-8'>
+      <div className='w-full max-w-7xl xl:max-w-none 2xl:max-w-none mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8'>
         <div className='h-[calc(100vh-12rem)] flex rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10'>
           {/* Conversations Sidebar */}
           <div className='w-80 bg-white/10 border-r border-white/10 flex flex-col backdrop-blur-sm'>

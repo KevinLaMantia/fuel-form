@@ -1,56 +1,92 @@
 import { supabase } from "./supabase"
 
-export async function signUp(email: string, password: string, userData: any) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: userData,
-    },
-  })
-
-  if (error) throw error
-  return data
+export interface User {
+  id: string
+  email: string
+  full_name?: string
+  user_type?: "client" | "trainer"
+  phone?: string
+  date_of_birth?: string
+  created_at?: string
+  updated_at?: string
 }
 
-export async function signIn(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession()
 
-  if (error) throw error
-  return data
-}
+    if (sessionError) {
+      console.error("Session error:", sessionError)
+      return null
+    }
 
-export async function signOut() {
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
+    if (!session?.user) {
+      return null
+    }
 
-export async function getCurrentUser() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user
+    // Get user profile from database
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", session.user.id)
+      .single()
+
+    if (profileError) {
+      console.error("Profile error:", profileError)
+      // Return basic user info from auth if profile doesn't exist
+      return {
+        id: session.user.id,
+        email: session.user.email || "",
+        full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+      }
+    }
+
+    return profile
+  } catch (error) {
+    console.error("Error getting current user:", error)
+    return null
+  }
 }
 
 export async function getSession() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  return session
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
+    if (error) {
+      console.error("Error getting session:", error)
+      return null
+    }
+    return session
+  } catch (error) {
+    console.error("Error getting session:", error)
+    return null
+  }
 }
 
-// Server-side functions (only use these in server components)
-export async function getCurrentUserServer() {
-  // This function should only be used in server components
-  // For client components, use getCurrentUser() instead
-  throw new Error("Use getCurrentUser() in client components")
+export async function signOut() {
+  try {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error("Error signing out:", error)
+      return false
+    }
+    return true
+  } catch (error) {
+    console.error("Error signing out:", error)
+    return false
+  }
 }
 
-export async function getSessionServer() {
-  // This function should only be used in server components
-  // For client components, use getSession() instead
-  throw new Error("Use getSession() in client components")
+// Server-side functions (should only be called from server components)
+export function createServerClient() {
+  throw new Error("createServerClient should only be called from server components")
+}
+
+export function getServerSession() {
+  throw new Error("getServerSession should only be called from server components")
 }
