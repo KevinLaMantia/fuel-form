@@ -2,51 +2,32 @@ import { supabase } from "./supabase"
 
 export interface User {
   id: string
-  email: string
-  full_name?: string
-  user_type?: "client" | "trainer"
-  phone?: string
-  date_of_birth?: string
-  created_at?: string
-  updated_at?: string
+  email?: string
+  user_metadata?: {
+    full_name?: string
+    avatar_url?: string
+    name?: string
+  }
+  app_metadata?: {
+    provider?: string
+  }
 }
 
 export async function getCurrentUser(): Promise<User | null> {
   try {
     const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
 
-    if (sessionError) {
-      console.error("Session error:", sessionError)
+    if (error) {
+      console.error("Error getting user:", error)
       return null
     }
 
-    if (!session?.user) {
-      return null
-    }
-
-    // Get user profile from database
-    const { data: profile, error: profileError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", session.user.id)
-      .single()
-
-    if (profileError) {
-      console.error("Profile error:", profileError)
-      // Return basic user info from auth if profile doesn't exist
-      return {
-        id: session.user.id,
-        email: session.user.email || "",
-        full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-      }
-    }
-
-    return profile
+    return user as User
   } catch (error) {
-    console.error("Error getting current user:", error)
+    console.error("Error in getCurrentUser:", error)
     return null
   }
 }
@@ -57,27 +38,54 @@ export async function getSession() {
       data: { session },
       error,
     } = await supabase.auth.getSession()
+
     if (error) {
       console.error("Error getting session:", error)
       return null
     }
+
     return session
   } catch (error) {
-    console.error("Error getting session:", error)
+    console.error("Error in getSession:", error)
     return null
   }
+}
+
+export async function signIn(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  })
+
+  if (error) throw error
+  return data
+}
+
+export async function signUp(email: string, password: string, userData: any) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: userData,
+    },
+  })
+
+  if (error) throw error
+  return data
 }
 
 export async function signOut() {
   try {
     const { error } = await supabase.auth.signOut()
+
     if (error) {
       console.error("Error signing out:", error)
       return false
     }
+
     return true
   } catch (error) {
-    console.error("Error signing out:", error)
+    console.error("Error in signOut:", error)
     return false
   }
 }

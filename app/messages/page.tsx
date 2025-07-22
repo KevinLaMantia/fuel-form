@@ -5,99 +5,102 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Send,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
   Search,
-  MoreVertical,
-  Phone,
-  Video,
-  Paperclip,
-  Smile,
+  Star,
+  MapPin,
+  DollarSign,
+  Users,
+  Award,
+  Calendar,
 } from 'lucide-react';
 import { NavigationHeader } from '@/components/navigation-header';
 import { getCurrentUser, type User } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
-const conversations = [
+const trainers = [
   {
     id: 1,
     name: 'Sarah Mitchell',
-    role: 'Personal Trainer',
-    lastMessage: "Great job on today's workout! How are you feeling?",
-    time: '2:30 PM',
-    unread: 2,
+    specializations: ['Weight Training', 'HIIT', 'Nutrition'],
+    experience: '5 years',
+    rating: 4.9,
+    reviews: 127,
+    location: 'New York, NY',
+    hourlyRate: 85,
+    availability: 'Available',
+    certifications: ['NASM-CPT', 'Precision Nutrition'],
+    bio: 'Passionate about helping clients achieve their fitness goals through personalized training programs.',
     avatar: 'SM',
-    online: true,
+    verified: true,
   },
   {
     id: 2,
-    name: 'John Doe',
-    role: 'Client',
-    lastMessage: 'Thanks for the new program! When should I start?',
-    time: '1:45 PM',
-    unread: 0,
-    avatar: 'JD',
-    online: false,
-  },
-  {
-    id: 3,
     name: 'Mike Johnson',
-    role: 'Client',
-    lastMessage: "I'm struggling with the nutrition plan...",
-    time: '11:20 AM',
-    unread: 1,
+    specializations: [
+      'Strength Training',
+      'Powerlifting',
+      'Sports Performance',
+    ],
+    experience: '8 years',
+    rating: 4.8,
+    reviews: 203,
+    location: 'Los Angeles, CA',
+    hourlyRate: 95,
+    availability: 'Busy',
+    certifications: ['CSCS', 'USAPL Coach'],
+    bio: 'Former competitive powerlifter specializing in strength and performance training.',
     avatar: 'MJ',
-    online: true,
-  },
-];
-
-const messages = [
-  {
-    id: 1,
-    sender: 'Sarah Mitchell',
-    content: 'Hi! How did your workout go today?',
-    time: '2:15 PM',
-    isMe: false,
-  },
-  {
-    id: 2,
-    sender: 'Me',
-    content:
-      'It went really well! I managed to increase my bench press by 5 lbs 💪',
-    time: '2:18 PM',
-    isMe: true,
+    verified: true,
   },
   {
     id: 3,
-    sender: 'Sarah Mitchell',
-    content:
-      "That's fantastic! I'm so proud of your progress. How are you feeling about the new program overall?",
-    time: '2:20 PM',
-    isMe: false,
+    name: 'Emily Chen',
+    specializations: ['Yoga', 'Pilates', 'Flexibility'],
+    experience: '6 years',
+    rating: 4.9,
+    reviews: 156,
+    location: 'San Francisco, CA',
+    hourlyRate: 75,
+    availability: 'Available',
+    certifications: ['RYT-500', 'PMA-CPT'],
+    bio: 'Dedicated to helping clients improve flexibility, balance, and mind-body connection.',
+    avatar: 'EC',
+    verified: true,
   },
   {
     id: 4,
-    sender: 'Me',
-    content:
-      'I love it! The variety keeps things interesting and I can definitely feel myself getting stronger.',
-    time: '2:25 PM',
-    isMe: true,
-  },
-  {
-    id: 5,
-    sender: 'Sarah Mitchell',
-    content: "Great job on today's workout! How are you feeling?",
-    time: '2:30 PM',
-    isMe: false,
+    name: 'David Rodriguez',
+    specializations: ['CrossFit', 'Functional Training', 'Cardio'],
+    experience: '4 years',
+    rating: 4.7,
+    reviews: 89,
+    location: 'Austin, TX',
+    hourlyRate: 70,
+    availability: 'Available',
+    certifications: ['CF-L2', 'ACSM-CPT'],
+    bio: 'High-energy trainer focused on functional fitness and metabolic conditioning.',
+    avatar: 'DR',
+    verified: false,
   },
 ];
 
-export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState(
-    conversations[0]
-  );
-  const [newMessage, setNewMessage] = useState('');
+export default function TrainersPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSpecialization, setSelectedSpecialization] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [priceRange, setPriceRange] = useState('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -122,16 +125,48 @@ export default function MessagesPage() {
     loadUser();
   }, [router]);
 
-  const sendMessage = () => {
-    if (newMessage.trim()) {
-      // Add message logic here
-      console.log('Sending message:', newMessage);
-      setNewMessage('');
-    }
+  const handleVerifiedOnlyChange = (checked: boolean | 'indeterminate') => {
+    setVerifiedOnly(checked === true);
   };
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTrainers = trainers.filter((trainer) => {
+    const matchesSearch =
+      trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      trainer.specializations.some((spec) =>
+        spec.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    const matchesSpecialization =
+      selectedSpecialization === 'all' ||
+      trainer.specializations.includes(selectedSpecialization);
+    const matchesLocation =
+      selectedLocation === 'all' || trainer.location.includes(selectedLocation);
+    const matchesPrice =
+      priceRange === 'all' ||
+      (priceRange === 'under-75' && trainer.hourlyRate < 75) ||
+      (priceRange === '75-90' &&
+        trainer.hourlyRate >= 75 &&
+        trainer.hourlyRate <= 90) ||
+      (priceRange === 'over-90' && trainer.hourlyRate > 90);
+    const matchesAvailability =
+      availabilityFilter === 'all' ||
+      trainer.availability === availabilityFilter;
+    const matchesVerified = !verifiedOnly || trainer.verified;
+
+    return (
+      matchesSearch &&
+      matchesSpecialization &&
+      matchesLocation &&
+      matchesPrice &&
+      matchesAvailability &&
+      matchesVerified
+    );
+  });
+
+  const allSpecializations = Array.from(
+    new Set(trainers.flatMap((t) => t.specializations))
+  );
+  const allLocations = Array.from(
+    new Set(trainers.map((t) => t.location.split(', ')[1]))
   );
 
   if (loading) {
@@ -146,191 +181,260 @@ export default function MessagesPage() {
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
       <NavigationHeader user={user} />
 
-      <div className='w-full max-w-7xl xl:max-w-none 2xl:max-w-none mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 py-8'>
-        <div className='h-[calc(100vh-12rem)] flex rounded-2xl overflow-hidden bg-white/5 backdrop-blur-sm border border-white/10'>
-          {/* Conversations Sidebar */}
-          <div className='w-80 bg-white/10 border-r border-white/10 flex flex-col backdrop-blur-sm'>
-            {/* Header */}
-            <div className='p-4 border-b border-white/10'>
-              <h1 className='text-xl font-bold text-white mb-4'>Messages</h1>
-              <div className='relative'>
-                <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60' />
-                <Input
-                  placeholder='Search conversations...'
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20'
-                />
-              </div>
-            </div>
+      <div className='container mx-auto p-4 space-y-6'>
+        {/* Header */}
+        <div className='mb-8'>
+          <h1 className='text-3xl font-bold text-white mb-2'>
+            Find Your Perfect Trainer
+          </h1>
+          <p className='text-white/70'>
+            Connect with certified fitness professionals to reach your goals
+          </p>
+        </div>
 
-            {/* Conversations List */}
-            <div className='flex-1 overflow-y-auto'>
-              {filteredConversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  onClick={() => setSelectedConversation(conversation)}
-                  className={`p-4 border-b border-white/10 cursor-pointer hover:bg-white/10 transition-all duration-200 ${
-                    selectedConversation.id === conversation.id
-                      ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-r-2 border-r-purple-400'
-                      : ''
-                  }`}
-                >
-                  <div className='flex items-start space-x-3'>
-                    <div className='relative'>
-                      <Avatar>
-                        <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
-                          {conversation.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      {conversation.online && (
-                        <div className='absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full'></div>
-                      )}
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <div className='flex items-center justify-between'>
-                        <h3 className='font-medium text-white truncate'>
-                          {conversation.name}
-                        </h3>
-                        <span className='text-xs text-white/60'>
-                          {conversation.time}
-                        </span>
-                      </div>
-                      <p className='text-sm text-purple-300 mb-1'>
-                        {conversation.role}
-                      </p>
-                      <p className='text-sm text-white/70 truncate'>
-                        {conversation.lastMessage}
-                      </p>
-                    </div>
-                    {conversation.unread > 0 && (
-                      <Badge className='bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs border-0'>
-                        {conversation.unread}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Search and Filters */}
+        <div className='mb-8 space-y-4'>
+          {/* Search Bar */}
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60' />
+            <Input
+              placeholder='Search trainers by name or specialization...'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='pl-10 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20'
+            />
           </div>
 
-          {/* Chat Area */}
-          <div className='flex-1 flex flex-col bg-white/5'>
-            {/* Chat Header */}
-            <div className='bg-white/10 border-b border-white/10 p-4 flex items-center justify-between backdrop-blur-sm'>
-              <div className='flex items-center space-x-3'>
-                <div className='relative'>
-                  <Avatar>
-                    <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
-                      {selectedConversation.avatar}
-                    </AvatarFallback>
-                  </Avatar>
-                  {selectedConversation.online && (
-                    <div className='absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-slate-900 rounded-full'></div>
-                  )}
-                </div>
-                <div>
-                  <h2 className='font-medium text-white'>
-                    {selectedConversation.name}
-                  </h2>
-                  <p className='text-sm text-white/70'>
-                    {selectedConversation.online
-                      ? 'Online'
-                      : 'Last seen 2 hours ago'}
-                  </p>
-                </div>
-              </div>
-              <div className='flex items-center space-x-2'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='text-white/70 hover:text-white hover:bg-white/10'
-                >
-                  <Phone className='h-4 w-4' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='text-white/70 hover:text-white hover:bg-white/10'
-                >
-                  <Video className='h-4 w-4' />
-                </Button>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='text-white/70 hover:text-white hover:bg-white/10'
-                >
-                  <MoreVertical className='h-4 w-4' />
-                </Button>
-              </div>
-            </div>
+          {/* Filters */}
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'>
+            <Select
+              value={selectedSpecialization}
+              onValueChange={setSelectedSpecialization}
+            >
+              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
+                <SelectValue placeholder='Specialization' />
+              </SelectTrigger>
+              <SelectContent className='bg-slate-800 border-white/20'>
+                <SelectItem value='all' className='text-white'>
+                  All Specializations
+                </SelectItem>
+                {allSpecializations.map((spec) => (
+                  <SelectItem key={spec} value={spec} className='text-white'>
+                    {spec}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            {/* Messages */}
-            <div className='flex-1 overflow-y-auto p-4 space-y-4'>
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${
-                    message.isMe ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                      message.isMe
-                        ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                        : 'bg-white/10 border border-white/20 text-white backdrop-blur-sm'
-                    }`}
+            <Select
+              value={selectedLocation}
+              onValueChange={setSelectedLocation}
+            >
+              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
+                <SelectValue placeholder='Location' />
+              </SelectTrigger>
+              <SelectContent className='bg-slate-800 border-white/20'>
+                <SelectItem value='all' className='text-white'>
+                  All Locations
+                </SelectItem>
+                {allLocations.map((location) => (
+                  <SelectItem
+                    key={location}
+                    value={location}
+                    className='text-white'
                   >
-                    <p className='text-sm'>{message.content}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        message.isMe ? 'text-purple-100' : 'text-white/60'
-                      }`}
-                    >
-                      {message.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    {location}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            {/* Message Input */}
-            <div className='bg-white/10 border-t border-white/10 p-4 backdrop-blur-sm'>
-              <div className='flex items-center space-x-2'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='text-white/70 hover:text-white hover:bg-white/10'
-                >
-                  <Paperclip className='h-4 w-4' />
-                </Button>
-                <div className='flex-1 relative'>
-                  <Input
-                    placeholder='Type a message...'
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                    className='pr-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20'
-                  />
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='absolute right-1 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white hover:bg-white/10'
-                  >
-                    <Smile className='h-4 w-4' />
-                  </Button>
-                </div>
-                <Button
-                  onClick={sendMessage}
-                  disabled={!newMessage.trim()}
-                  className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0 disabled:opacity-50'
-                >
-                  <Send className='h-4 w-4' />
-                </Button>
-              </div>
+            <Select value={priceRange} onValueChange={setPriceRange}>
+              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
+                <SelectValue placeholder='Price Range' />
+              </SelectTrigger>
+              <SelectContent className='bg-slate-800 border-white/20'>
+                <SelectItem value='all' className='text-white'>
+                  All Prices
+                </SelectItem>
+                <SelectItem value='under-75' className='text-white'>
+                  Under $75/hr
+                </SelectItem>
+                <SelectItem value='75-90' className='text-white'>
+                  $75-90/hr
+                </SelectItem>
+                <SelectItem value='over-90' className='text-white'>
+                  Over $90/hr
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={availabilityFilter}
+              onValueChange={setAvailabilityFilter}
+            >
+              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
+                <SelectValue placeholder='Availability' />
+              </SelectTrigger>
+              <SelectContent className='bg-slate-800 border-white/20'>
+                <SelectItem value='all' className='text-white'>
+                  All Trainers
+                </SelectItem>
+                <SelectItem value='Available' className='text-white'>
+                  Available
+                </SelectItem>
+                <SelectItem value='Busy' className='text-white'>
+                  Busy
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className='flex items-center space-x-2'>
+              <Checkbox
+                id='verified'
+                checked={verifiedOnly}
+                onCheckedChange={handleVerifiedOnlyChange}
+                className='border-white/20 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600'
+              />
+              <label
+                htmlFor='verified'
+                className='text-sm text-white cursor-pointer'
+              >
+                Verified Only
+              </label>
             </div>
           </div>
         </div>
+
+        {/* Results Count */}
+        <div className='mb-6'>
+          <p className='text-white/70'>
+            Showing {filteredTrainers.length} of {trainers.length} trainers
+          </p>
+        </div>
+
+        {/* Trainers Grid */}
+        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+          {filteredTrainers.map((trainer) => (
+            <Card
+              key={trainer.id}
+              className='bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/15 transition-all duration-300 hover:scale-105'
+            >
+              <CardHeader className='pb-4'>
+                <div className='flex items-start justify-between'>
+                  <div className='flex items-center space-x-3'>
+                    <Avatar className='h-12 w-12'>
+                      <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                        {trainer.avatar}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className='flex items-center space-x-2'>
+                        <CardTitle className='text-white text-lg'>
+                          {trainer.name}
+                        </CardTitle>
+                        {trainer.verified && (
+                          <Badge className='bg-green-600 text-white text-xs'>
+                            <Award className='h-3 w-3 mr-1' />
+                            Verified
+                          </Badge>
+                        )}
+                      </div>
+                      <div className='flex items-center space-x-1 mt-1'>
+                        <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
+                        <span className='text-white text-sm'>
+                          {trainer.rating}
+                        </span>
+                        <span className='text-white/60 text-sm'>
+                          ({trainer.reviews} reviews)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge
+                    className={`${
+                      trainer.availability === 'Available'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-orange-600 text-white'
+                    }`}
+                  >
+                    {trainer.availability}
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className='space-y-4'>
+                <p className='text-white/80 text-sm'>{trainer.bio}</p>
+
+                <div className='space-y-2'>
+                  <div className='flex items-center space-x-2 text-sm text-white/70'>
+                    <Users className='h-4 w-4' />
+                    <span>{trainer.experience} experience</span>
+                  </div>
+                  <div className='flex items-center space-x-2 text-sm text-white/70'>
+                    <MapPin className='h-4 w-4' />
+                    <span>{trainer.location}</span>
+                  </div>
+                  <div className='flex items-center space-x-2 text-sm text-white/70'>
+                    <DollarSign className='h-4 w-4' />
+                    <span>${trainer.hourlyRate}/hour</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className='text-white font-medium text-sm mb-2'>
+                    Specializations
+                  </h4>
+                  <div className='flex flex-wrap gap-1'>
+                    {trainer.specializations.map((spec) => (
+                      <Badge
+                        key={spec}
+                        className='bg-purple-600/20 text-purple-300 border-purple-400/20 text-xs'
+                      >
+                        {spec}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className='text-white font-medium text-sm mb-2'>
+                    Certifications
+                  </h4>
+                  <div className='flex flex-wrap gap-1'>
+                    {trainer.certifications.map((cert) => (
+                      <Badge
+                        key={cert}
+                        className='bg-blue-600/20 text-blue-300 border-blue-400/20 text-xs'
+                      >
+                        {cert}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className='flex space-x-2 pt-4'>
+                  <Button className='flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'>
+                    View Profile
+                  </Button>
+                  <Button
+                    variant='outline'
+                    className='border-white/20 text-white hover:bg-white/10 bg-transparent'
+                  >
+                    <Calendar className='h-4 w-4' />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredTrainers.length === 0 && (
+          <div className='text-center py-12'>
+            <div className='text-white/60 text-lg mb-2'>No trainers found</div>
+            <p className='text-white/40'>Try adjusting your search criteria</p>
+          </div>
+        )}
       </div>
     </div>
   );
