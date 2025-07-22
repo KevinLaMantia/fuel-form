@@ -14,7 +14,6 @@ export function HeroLogo({ className = '' }: HeroLogoProps) {
         <h1 className='text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent'>
           FuelForm
         </h1>
-        <p className='text-sm text-gray-400'>Fuel Your Form</p>
       </div>
     </div>
   );

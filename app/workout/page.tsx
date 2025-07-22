@@ -1,444 +1,359 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Play, Pause, Check, Plus, Minus, Timer } from "lucide-react"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { NavigationHeader } from '@/components/navigation-header';
+import {
+  Play,
+  Pause,
+  Square,
+  Dumbbell,
+  Target,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-const workoutData = {
-  name: "Upper Body Strength",
-  week: 3,
-  day: 2,
-  estimatedTime: "45-60 min",
-  exercises: [
+export default function WorkoutPage() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeWorkout, setActiveWorkout] = useState<any>(null);
+  const [workoutTimer, setWorkoutTimer] = useState(0);
+  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    checkSession();
+  }, []);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isWorkoutActive) {
+      interval = setInterval(() => {
+        setWorkoutTimer((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isWorkoutActive]);
+
+  const checkSession = async () => {
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        router.replace('/login');
+        return;
+      }
+
+      setUser(session.user);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error checking session:', error);
+      router.replace('/login');
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
+  };
+
+  const workoutPlans = [
     {
       id: 1,
-      name: "Bench Press",
-      sets: 3,
-      reps: 8,
-      weight: 185,
-      restTime: 120,
-      notes: "Focus on controlled movement",
-      completed: false,
-      setData: [
-        { set: 1, reps: 0, weight: 185, completed: false },
-        { set: 2, reps: 0, weight: 185, completed: false },
-        { set: 3, reps: 0, weight: 185, completed: false },
-      ],
+      name: 'Upper Body Strength',
+      duration: '45 min',
+      exercises: 8,
+      difficulty: 'Intermediate',
+      calories: 320,
+      description:
+        'Focus on building upper body strength with compound movements',
     },
     {
       id: 2,
-      name: "Incline Dumbbell Press",
-      sets: 3,
-      reps: 10,
-      weight: 65,
-      restTime: 90,
-      notes: "45-degree incline",
-      completed: false,
-      setData: [
-        { set: 1, reps: 0, weight: 65, completed: false },
-        { set: 2, reps: 0, weight: 65, completed: false },
-        { set: 3, reps: 0, weight: 65, completed: false },
-      ],
+      name: 'HIIT Cardio Blast',
+      duration: '30 min',
+      exercises: 6,
+      difficulty: 'Advanced',
+      calories: 450,
+      description: 'High-intensity interval training for maximum calorie burn',
     },
     {
       id: 3,
-      name: "Pull-ups",
-      sets: 3,
-      reps: 6,
-      weight: 0,
-      restTime: 120,
-      notes: "Use assistance if needed",
-      completed: false,
-      setData: [
-        { set: 1, reps: 0, weight: 0, completed: false },
-        { set: 2, reps: 0, weight: 0, completed: false },
-        { set: 3, reps: 0, weight: 0, completed: false },
-      ],
+      name: 'Full Body Beginner',
+      duration: '35 min',
+      exercises: 10,
+      difficulty: 'Beginner',
+      calories: 280,
+      description: 'Perfect introduction to strength training',
     },
     {
       id: 4,
-      name: "Seated Cable Row",
-      sets: 3,
-      reps: 12,
-      weight: 120,
-      restTime: 90,
-      notes: "Squeeze shoulder blades",
-      completed: false,
-      setData: [
-        { set: 1, reps: 0, weight: 120, completed: false },
-        { set: 2, reps: 0, weight: 120, completed: false },
-        { set: 3, reps: 0, weight: 120, completed: false },
-      ],
+      name: 'Core & Flexibility',
+      duration: '25 min',
+      exercises: 7,
+      difficulty: 'Beginner',
+      calories: 180,
+      description: 'Strengthen your core and improve flexibility',
     },
-  ],
-}
+  ];
 
-export default function WorkoutPage() {
-  const [workout, setWorkout] = useState(workoutData)
-  const [currentExercise, setCurrentExercise] = useState(0)
-  const [currentSet, setCurrentSet] = useState(0)
-  const [isResting, setIsResting] = useState(false)
-  const [restTimer, setRestTimer] = useState(0)
-  const [workoutStarted, setWorkoutStarted] = useState(false)
+  const startWorkout = (workout: any) => {
+    setActiveWorkout(workout);
+    setIsWorkoutActive(true);
+    setWorkoutTimer(0);
+  };
 
-  const updateSetData = (exerciseId: number, setIndex: number, field: string, value: any) => {
-    setWorkout((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((exercise) =>
-        exercise.id === exerciseId
-          ? {
-              ...exercise,
-              setData: exercise.setData.map((set, index) => (index === setIndex ? { ...set, [field]: value } : set)),
-            }
-          : exercise,
-      ),
-    }))
+  const pauseWorkout = () => {
+    setIsWorkoutActive(false);
+  };
+
+  const resumeWorkout = () => {
+    setIsWorkoutActive(true);
+  };
+
+  const endWorkout = () => {
+    setActiveWorkout(null);
+    setIsWorkoutActive(false);
+    setWorkoutTimer(0);
+  };
+
+  if (loading) {
+    return (
+      <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center'>
+        <div className='text-center'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto'></div>
+          <p className='mt-4 text-white/70'>Loading workouts...</p>
+        </div>
+      </div>
+    );
   }
-
-  const completeSet = (exerciseId: number, setIndex: number) => {
-    updateSetData(exerciseId, setIndex, "completed", true)
-
-    // Start rest timer
-    const exercise = workout.exercises.find((e) => e.id === exerciseId)
-    if (exercise) {
-      setIsResting(true)
-      setRestTimer(exercise.restTime)
-    }
-  }
-
-  const completeExercise = (exerciseId: number) => {
-    setWorkout((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((exercise) =>
-        exercise.id === exerciseId ? { ...exercise, completed: true } : exercise,
-      ),
-    }))
-  }
-
-  const completedExercises = workout.exercises.filter((e) => e.completed).length
-  const workoutProgress = (completedExercises / workout.exercises.length) * 100
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">{workout.name}</h1>
-              <p className="text-sm text-gray-600">
-                Week {workout.week}, Day {workout.day}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline">
-                <Timer className="h-3 w-3 mr-1" />
-                {workout.estimatedTime}
-              </Badge>
-              {!workoutStarted ? (
-                <Button onClick={() => setWorkoutStarted(true)}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Workout
-                </Button>
-              ) : (
-                <Button variant="outline">
-                  <Pause className="h-4 w-4 mr-2" />
-                  Pause
-                </Button>
-              )}
-            </div>
-          </div>
+      <NavigationHeader user={user} />
 
-          {workoutStarted && (
-            <div className="mt-4">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>Progress</span>
-                <span>
-                  {completedExercises}/{workout.exercises.length} exercises
-                </span>
-              </div>
-              <Progress value={workoutProgress} className="h-2" />
-            </div>
-          )}
-        </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-6">
-        {!workoutStarted ? (
-          // Workout Overview
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Workout Overview</CardTitle>
-                <CardDescription>
-                  {workout.exercises.length} exercises • Estimated {workout.estimatedTime}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {workout.exercises.map((exercise, index) => (
-                    <div key={exercise.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium text-sm">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{exercise.name}</h3>
-                          <p className="text-sm text-gray-600">
-                            {exercise.sets} sets × {exercise.reps} reps
-                            {exercise.weight > 0 && ` @ ${exercise.weight} lbs`}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline">{exercise.restTime}s rest</Badge>
-                    </div>
-                  ))}
+      <div className='container mx-auto px-4 py-8'>
+        {/* Active Workout Timer */}
+        {activeWorkout && (
+          <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl mb-6'>
+            <CardContent className='p-6'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center space-x-4'>
+                  <div className='p-3 bg-purple-500/20 rounded-full'>
+                    <Dumbbell className='h-6 w-6 text-purple-400' />
+                  </div>
+                  <div>
+                    <h3 className='text-xl font-bold text-white'>
+                      {activeWorkout.name}
+                    </h3>
+                    <p className='text-white/60'>Active Workout</p>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <div className="text-center">
-              <Button size="lg" onClick={() => setWorkoutStarted(true)}>
-                <Play className="h-5 w-5 mr-2" />
-                Start Workout
-              </Button>
-            </div>
-          </div>
-        ) : (
-          // Active Workout
-          <Tabs defaultValue="current" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="current">Current Exercise</TabsTrigger>
-              <TabsTrigger value="all">All Exercises</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="current">
-              {workout.exercises.map((exercise, exerciseIndex) => (
-                <Card key={exercise.id} className={exerciseIndex === currentExercise ? "" : "hidden"}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle className="flex items-center space-x-2">
-                          <span>{exercise.name}</span>
-                          {exercise.completed && <Check className="h-5 w-5 text-green-600" />}
-                        </CardTitle>
-                        <CardDescription>
-                          {exercise.sets} sets × {exercise.reps} reps
-                          {exercise.weight > 0 && ` @ ${exercise.weight} lbs`}
-                        </CardDescription>
-                      </div>
-                      <Badge variant="outline">
-                        Exercise {exerciseIndex + 1}/{workout.exercises.length}
-                      </Badge>
+                <div className='flex items-center space-x-4'>
+                  <div className='text-center'>
+                    <div className='text-2xl font-bold text-white'>
+                      {formatTime(workoutTimer)}
                     </div>
-                    {exercise.notes && (
-                      <p className="text-sm text-blue-600 bg-blue-50 p-2 rounded">💡 {exercise.notes}</p>
-                    )}
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    {exercise.setData.map((set, setIndex) => (
-                      <div key={setIndex} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-medium">Set {set.set}</h3>
-                          {set.completed && (
-                            <Badge variant="default">
-                              <Check className="h-3 w-3 mr-1" />
-                              Complete
-                            </Badge>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className="text-sm font-medium text-gray-700">Reps</label>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateSetData(exercise.id, setIndex, "reps", Math.max(0, set.reps - 1))}
-                                disabled={set.completed}
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <Input
-                                type="number"
-                                value={set.reps}
-                                onChange={(e) =>
-                                  updateSetData(exercise.id, setIndex, "reps", Number.parseInt(e.target.value) || 0)
-                                }
-                                className="w-16 text-center"
-                                disabled={set.completed}
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => updateSetData(exercise.id, setIndex, "reps", set.reps + 1)}
-                                disabled={set.completed}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-
-                          {exercise.weight > 0 && (
-                            <div>
-                              <label className="text-sm font-medium text-gray-700">Weight (lbs)</label>
-                              <div className="flex items-center space-x-2 mt-1">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    updateSetData(exercise.id, setIndex, "weight", Math.max(0, set.weight - 5))
-                                  }
-                                  disabled={set.completed}
-                                >
-                                  <Minus className="h-3 w-3" />
-                                </Button>
-                                <Input
-                                  type="number"
-                                  value={set.weight}
-                                  onChange={(e) =>
-                                    updateSetData(exercise.id, setIndex, "weight", Number.parseInt(e.target.value) || 0)
-                                  }
-                                  className="w-16 text-center"
-                                  disabled={set.completed}
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => updateSetData(exercise.id, setIndex, "weight", set.weight + 5)}
-                                  disabled={set.completed}
-                                >
-                                  <Plus className="h-3 w-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {!set.completed ? (
-                          <Button
-                            className="w-full"
-                            onClick={() => completeSet(exercise.id, setIndex)}
-                            disabled={set.reps === 0}
-                          >
-                            Complete Set
-                          </Button>
-                        ) : (
-                          <div className="text-center text-green-600 font-medium">
-                            ✓ Set completed: {set.reps} reps @ {set.weight} lbs
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    {exercise.setData.every((set) => set.completed) && !exercise.completed && (
+                    <p className='text-xs text-white/60'>Elapsed Time</p>
+                  </div>
+                  <div className='flex space-x-2'>
+                    {isWorkoutActive ? (
                       <Button
-                        className="w-full"
-                        variant="default"
-                        onClick={() => {
-                          completeExercise(exercise.id)
-                          if (exerciseIndex < workout.exercises.length - 1) {
-                            setCurrentExercise(exerciseIndex + 1)
-                          }
-                        }}
+                        variant='outline'
+                        className='border-white/30 text-white hover:bg-white/10 bg-transparent'
+                        onClick={pauseWorkout}
                       >
-                        Complete Exercise
+                        <Pause className='h-4 w-4 mr-2' />
+                        Pause
+                      </Button>
+                    ) : (
+                      <Button
+                        className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                        onClick={resumeWorkout}
+                      >
+                        <Play className='h-4 w-4 mr-2' />
+                        Resume
                       </Button>
                     )}
-                  </CardContent>
-                </Card>
-              ))}
-
-              {/* Rest Timer */}
-              {isResting && (
-                <Card className="border-orange-200 bg-orange-50">
-                  <CardContent className="pt-6 text-center">
-                    <div className="text-4xl font-bold text-orange-600 mb-2">
-                      {Math.floor(restTimer / 60)}:{(restTimer % 60).toString().padStart(2, "0")}
-                    </div>
-                    <p className="text-orange-700 mb-4">Rest Time</p>
                     <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsResting(false)
-                        setRestTimer(0)
-                      }}
+                      variant='outline'
+                      className='border-red-400/50 text-red-400 hover:bg-red-500/10 bg-transparent'
+                      onClick={endWorkout}
                     >
-                      Skip Rest
+                      <Square className='h-4 w-4 mr-2' />
+                      End
                     </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="all">
-              <div className="space-y-4">
-                {workout.exercises.map((exercise, index) => (
-                  <Card key={exercise.id} className={exercise.completed ? "bg-green-50 border-green-200" : ""}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                              exercise.completed
-                                ? "bg-green-600 text-white"
-                                : index === currentExercise
-                                  ? "bg-blue-600 text-white"
-                                  : "bg-gray-200 text-gray-600"
-                            }`}
-                          >
-                            {exercise.completed ? <Check className="h-4 w-4" /> : index + 1}
-                          </div>
-                          <div>
-                            <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                            <CardDescription>
-                              {exercise.sets} sets × {exercise.reps} reps
-                              {exercise.weight > 0 && ` @ ${exercise.weight} lbs`}
-                            </CardDescription>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm text-gray-600">
-                            {exercise.setData.filter((s) => s.completed).length}/{exercise.sets} sets
-                          </div>
-                          <Progress
-                            value={(exercise.setData.filter((s) => s.completed).length / exercise.sets) * 100}
-                            className="w-16 h-2 mt-1"
-                          />
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        )}
-
-        {/* Complete Workout */}
-        {workoutStarted && workout.exercises.every((e) => e.completed) && (
-          <Card className="border-green-200 bg-green-50 mt-6">
-            <CardContent className="pt-6 text-center">
-              <div className="text-green-600 mb-4">
-                <Check className="h-12 w-12 mx-auto mb-2" />
-                <h2 className="text-2xl font-bold">Workout Complete!</h2>
-                <p>Great job finishing your {workout.name} session</p>
-              </div>
-              <div className="flex justify-center space-x-4">
-                <Button>Save & Continue</Button>
-                <Button variant="outline">View Summary</Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
+
+        {/* Workout Plans */}
+        <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
+          <CardHeader>
+            <CardTitle className='text-white'>Available Workouts</CardTitle>
+            <CardDescription className='text-white/60'>
+              Choose a workout plan to get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              {workoutPlans.map((workout) => (
+                <div
+                  key={workout.id}
+                  className='p-6 bg-white/5 rounded-lg border border-white/10'
+                >
+                  <div className='flex items-start justify-between mb-4'>
+                    <div>
+                      <h3 className='text-xl font-bold text-white mb-2'>
+                        {workout.name}
+                      </h3>
+                      <p className='text-white/60 text-sm mb-3'>
+                        {workout.description}
+                      </p>
+                    </div>
+                    <Badge
+                      variant='outline'
+                      className={`${
+                        workout.difficulty === 'Beginner'
+                          ? 'border-green-400/50 text-green-400'
+                          : workout.difficulty === 'Intermediate'
+                          ? 'border-yellow-400/50 text-yellow-400'
+                          : 'border-red-400/50 text-red-400'
+                      }`}
+                    >
+                      {workout.difficulty}
+                    </Badge>
+                  </div>
+
+                  <div className='grid grid-cols-3 gap-4 mb-4'>
+                    <div className='text-center'>
+                      <div className='flex items-center justify-center mb-1'>
+                        <Clock className='h-4 w-4 text-purple-400' />
+                      </div>
+                      <div className='text-sm font-medium text-white'>
+                        {workout.duration}
+                      </div>
+                      <div className='text-xs text-white/60'>Duration</div>
+                    </div>
+                    <div className='text-center'>
+                      <div className='flex items-center justify-center mb-1'>
+                        <Target className='h-4 w-4 text-blue-400' />
+                      </div>
+                      <div className='text-sm font-medium text-white'>
+                        {workout.exercises}
+                      </div>
+                      <div className='text-xs text-white/60'>Exercises</div>
+                    </div>
+                    <div className='text-center'>
+                      <div className='flex items-center justify-center mb-1'>
+                        <TrendingUp className='h-4 w-4 text-green-400' />
+                      </div>
+                      <div className='text-sm font-medium text-white'>
+                        {workout.calories}
+                      </div>
+                      <div className='text-xs text-white/60'>Calories</div>
+                    </div>
+                  </div>
+
+                  <Button
+                    className='w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white'
+                    onClick={() => startWorkout(workout)}
+                    disabled={activeWorkout?.id === workout.id}
+                  >
+                    {activeWorkout?.id === workout.id ? (
+                      <>
+                        <CheckCircle className='h-4 w-4 mr-2' />
+                        Active
+                      </>
+                    ) : (
+                      <>
+                        <Play className='h-4 w-4 mr-2' />
+                        Start Workout
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Workouts */}
+        <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl mt-6'>
+          <CardHeader>
+            <CardTitle className='text-white'>Recent Workouts</CardTitle>
+            <CardDescription className='text-white/60'>
+              Your workout history
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='space-y-4'>
+              {[
+                {
+                  name: 'Upper Body Strength',
+                  date: 'Today',
+                  duration: '42 min',
+                  calories: 315,
+                },
+                {
+                  name: 'HIIT Cardio Blast',
+                  date: 'Yesterday',
+                  duration: '28 min',
+                  calories: 420,
+                },
+                {
+                  name: 'Full Body Beginner',
+                  date: '2 days ago',
+                  duration: '35 min',
+                  calories: 280,
+                },
+              ].map((workout, index) => (
+                <div
+                  key={index}
+                  className='flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10'
+                >
+                  <div className='flex items-center space-x-4'>
+                    <div className='p-2 bg-purple-500/20 rounded-lg'>
+                      <Dumbbell className='h-5 w-5 text-purple-400' />
+                    </div>
+                    <div>
+                      <h3 className='font-medium text-white'>{workout.name}</h3>
+                      <p className='text-sm text-white/60'>{workout.date}</p>
+                    </div>
+                  </div>
+                  <div className='text-right'>
+                    <p className='font-medium text-white'>{workout.duration}</p>
+                    <p className='text-sm text-white/60'>
+                      {workout.calories} calories
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
-  )
+  );
 }
