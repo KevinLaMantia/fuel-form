@@ -21,7 +21,6 @@ import {
   Star,
   CheckCircle,
   ArrowRight,
-  Play,
   Shield,
   Zap,
   Award,
@@ -341,26 +340,17 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* CTA Buttons */}
-            <div className='flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in delay-400'>
+            {/* CTA Button - Removed Watch Demo */}
+            <div className='flex justify-center items-center animate-fade-in delay-400'>
               <Link href='/signup?type=client'>
                 <Button
                   size='lg'
-                  className='w-full sm:w-auto h-14 px-8 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-lg font-semibold border-0 shadow-2xl transform hover:scale-105 transition-all duration-300'
+                  className='h-14 px-8 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-lg font-semibold border-0 shadow-2xl transform hover:scale-105 transition-all duration-300'
                 >
                   Start Your Journey
                   <ArrowRight className='ml-2 w-5 h-5' />
                 </Button>
               </Link>
-              <Button
-                variant='outline'
-                size='lg'
-                className='w-full sm:w-auto h-14 px-8 bg-white/10 border-white/30 text-white hover:bg-white/20 text-lg backdrop-blur-sm'
-                onClick={() => scrollToSection('features')}
-              >
-                <Play className='mr-2 w-5 h-5' />
-                Watch Demo
-              </Button>
             </div>
 
             {/* Stats */}

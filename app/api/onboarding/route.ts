@@ -41,6 +41,23 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("Client profile created:", data)
+
+      // Mark onboarding as completed in users table
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id)
+
+      if (updateError) {
+        console.error("Failed to mark onboarding as completed:", updateError)
+        // Don't fail the request, just log the error
+      } else {
+        console.log("Onboarding marked as completed for user:", user.id)
+      }
+
       return NextResponse.json({ success: true, profile: data })
     } else if (userType === "trainer") {
       // Create trainer profile
@@ -64,6 +81,23 @@ export async function POST(request: NextRequest) {
       }
 
       console.log("Trainer profile created:", data)
+
+      // Mark onboarding as completed in users table
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id)
+
+      if (updateError) {
+        console.error("Failed to mark onboarding as completed:", updateError)
+        // Don't fail the request, just log the error
+      } else {
+        console.log("Onboarding marked as completed for user:", user.id)
+      }
+
       return NextResponse.json({ success: true, profile: data })
     } else {
       return NextResponse.json({ error: "Invalid user type" }, { status: 400 })
