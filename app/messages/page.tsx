@@ -1,106 +1,128 @@
 'use client';
 
+import type React from 'react';
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Search,
-  Star,
-  MapPin,
-  DollarSign,
-  Users,
-  Award,
-  Calendar,
+  Send,
+  Phone,
+  Video,
+  MoreVertical,
+  Paperclip,
+  Smile,
 } from 'lucide-react';
 import { NavigationHeader } from '@/components/navigation-header';
 import { getCurrentUser, type User } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
-const trainers = [
+const conversations = [
   {
     id: 1,
     name: 'Sarah Mitchell',
-    specializations: ['Weight Training', 'HIIT', 'Nutrition'],
-    experience: '5 years',
-    rating: 4.9,
-    reviews: 127,
-    location: 'New York, NY',
-    hourlyRate: 85,
-    availability: 'Available',
-    certifications: ['NASM-CPT', 'Precision Nutrition'],
-    bio: 'Passionate about helping clients achieve their fitness goals through personalized training programs.',
+    role: 'Personal Trainer',
+    lastMessage: "Great job on today's workout! Keep it up 💪",
+    timestamp: '2 min ago',
+    unread: 2,
     avatar: 'SM',
-    verified: true,
+    online: true,
   },
   {
     id: 2,
     name: 'Mike Johnson',
-    specializations: [
-      'Strength Training',
-      'Powerlifting',
-      'Sports Performance',
-    ],
-    experience: '8 years',
-    rating: 4.8,
-    reviews: 203,
-    location: 'Los Angeles, CA',
-    hourlyRate: 95,
-    availability: 'Busy',
-    certifications: ['CSCS', 'USAPL Coach'],
-    bio: 'Former competitive powerlifter specializing in strength and performance training.',
+    role: 'Strength Coach',
+    lastMessage: "Let's schedule your next powerlifting session",
+    timestamp: '1 hour ago',
+    unread: 0,
     avatar: 'MJ',
-    verified: true,
+    online: false,
   },
   {
     id: 3,
     name: 'Emily Chen',
-    specializations: ['Yoga', 'Pilates', 'Flexibility'],
-    experience: '6 years',
-    rating: 4.9,
-    reviews: 156,
-    location: 'San Francisco, CA',
-    hourlyRate: 75,
-    availability: 'Available',
-    certifications: ['RYT-500', 'PMA-CPT'],
-    bio: 'Dedicated to helping clients improve flexibility, balance, and mind-body connection.',
+    role: 'Yoga Instructor',
+    lastMessage: 'Remember to practice the breathing exercises',
+    timestamp: '3 hours ago',
+    unread: 1,
     avatar: 'EC',
-    verified: true,
+    online: true,
   },
   {
     id: 4,
     name: 'David Rodriguez',
-    specializations: ['CrossFit', 'Functional Training', 'Cardio'],
-    experience: '4 years',
-    rating: 4.7,
-    reviews: 89,
-    location: 'Austin, TX',
-    hourlyRate: 70,
-    availability: 'Available',
-    certifications: ['CF-L2', 'ACSM-CPT'],
-    bio: 'High-energy trainer focused on functional fitness and metabolic conditioning.',
+    role: 'CrossFit Coach',
+    lastMessage: 'Your form is improving! See you tomorrow',
+    timestamp: '1 day ago',
+    unread: 0,
     avatar: 'DR',
-    verified: false,
+    online: false,
   },
 ];
 
-export default function TrainersPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSpecialization, setSelectedSpecialization] = useState('all');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState('all');
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+const messages = [
+  {
+    id: 1,
+    senderId: 1,
+    senderName: 'Sarah Mitchell',
+    content: "Hi! How are you feeling after yesterday's workout?",
+    timestamp: '10:30 AM',
+    isOwn: false,
+  },
+  {
+    id: 2,
+    senderId: 'me',
+    senderName: 'You',
+    content:
+      "I'm feeling great! A bit sore but in a good way. Ready for today's session.",
+    timestamp: '10:32 AM',
+    isOwn: true,
+  },
+  {
+    id: 3,
+    senderId: 1,
+    senderName: 'Sarah Mitchell',
+    content:
+      "Perfect! That's exactly what we want to hear. Today we'll focus on upper body strength training.",
+    timestamp: '10:33 AM',
+    isOwn: false,
+  },
+  {
+    id: 4,
+    senderId: 1,
+    senderName: 'Sarah Mitchell',
+    content:
+      "Make sure to bring your water bottle and we'll get started with a proper warm-up.",
+    timestamp: '10:34 AM',
+    isOwn: false,
+  },
+  {
+    id: 5,
+    senderId: 'me',
+    senderName: 'You',
+    content: "Sounds good! I'll be there in 15 minutes.",
+    timestamp: '10:35 AM',
+    isOwn: true,
+  },
+  {
+    id: 6,
+    senderId: 1,
+    senderName: 'Sarah Mitchell',
+    content: "Great job on today's workout! Keep it up 💪",
+    timestamp: '2:15 PM',
+    isOwn: false,
+  },
+];
+
+export default function MessagesPage() {
+  const [selectedConversation, setSelectedConversation] = useState(
+    conversations[0]
+  );
+  const [messageInput, setMessageInput] = useState('');
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -125,49 +147,20 @@ export default function TrainersPage() {
     loadUser();
   }, [router]);
 
-  const handleVerifiedOnlyChange = (checked: boolean | 'indeterminate') => {
-    setVerifiedOnly(checked === true);
+  const handleSendMessage = () => {
+    if (messageInput.trim()) {
+      // Here you would typically send the message to your backend
+      console.log('Sending message:', messageInput);
+      setMessageInput('');
+    }
   };
 
-  const filteredTrainers = trainers.filter((trainer) => {
-    const matchesSearch =
-      trainer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trainer.specializations.some((spec) =>
-        spec.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    const matchesSpecialization =
-      selectedSpecialization === 'all' ||
-      trainer.specializations.includes(selectedSpecialization);
-    const matchesLocation =
-      selectedLocation === 'all' || trainer.location.includes(selectedLocation);
-    const matchesPrice =
-      priceRange === 'all' ||
-      (priceRange === 'under-75' && trainer.hourlyRate < 75) ||
-      (priceRange === '75-90' &&
-        trainer.hourlyRate >= 75 &&
-        trainer.hourlyRate <= 90) ||
-      (priceRange === 'over-90' && trainer.hourlyRate > 90);
-    const matchesAvailability =
-      availabilityFilter === 'all' ||
-      trainer.availability === availabilityFilter;
-    const matchesVerified = !verifiedOnly || trainer.verified;
-
-    return (
-      matchesSearch &&
-      matchesSpecialization &&
-      matchesLocation &&
-      matchesPrice &&
-      matchesAvailability &&
-      matchesVerified
-    );
-  });
-
-  const allSpecializations = Array.from(
-    new Set(trainers.flatMap((t) => t.specializations))
-  );
-  const allLocations = Array.from(
-    new Set(trainers.map((t) => t.location.split(', ')[1]))
-  );
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
 
   if (loading) {
     return (
@@ -182,259 +175,194 @@ export default function TrainersPage() {
       <NavigationHeader user={user} />
 
       <div className='container mx-auto p-4 space-y-6'>
-        {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl font-bold text-white mb-2'>
-            Find Your Perfect Trainer
-          </h1>
-          <p className='text-white/70'>
-            Connect with certified fitness professionals to reach your goals
-          </p>
-        </div>
+        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-12rem)]'>
+          {/* Conversations Sidebar */}
+          <div className='lg:col-span-1'>
+            <Card className='h-full bg-white/10 border-white/20 backdrop-blur-sm'>
+              <CardContent className='p-0 h-full flex flex-col'>
+                {/* Search Header */}
+                <div className='p-4 border-b border-white/10'>
+                  <div className='relative'>
+                    <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60' />
+                    <Input
+                      placeholder='Search conversations...'
+                      className='pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60'
+                    />
+                  </div>
+                </div>
 
-        {/* Search and Filters */}
-        <div className='mb-8 space-y-4'>
-          {/* Search Bar */}
-          <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60' />
-            <Input
-              placeholder='Search trainers by name or specialization...'
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className='pl-10 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-purple-400 focus:ring-purple-400/20'
-            />
-          </div>
-
-          {/* Filters */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4'>
-            <Select
-              value={selectedSpecialization}
-              onValueChange={setSelectedSpecialization}
-            >
-              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
-                <SelectValue placeholder='Specialization' />
-              </SelectTrigger>
-              <SelectContent className='bg-slate-800 border-white/20'>
-                <SelectItem value='all' className='text-white'>
-                  All Specializations
-                </SelectItem>
-                {allSpecializations.map((spec) => (
-                  <SelectItem key={spec} value={spec} className='text-white'>
-                    {spec}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={selectedLocation}
-              onValueChange={setSelectedLocation}
-            >
-              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
-                <SelectValue placeholder='Location' />
-              </SelectTrigger>
-              <SelectContent className='bg-slate-800 border-white/20'>
-                <SelectItem value='all' className='text-white'>
-                  All Locations
-                </SelectItem>
-                {allLocations.map((location) => (
-                  <SelectItem
-                    key={location}
-                    value={location}
-                    className='text-white'
-                  >
-                    {location}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={priceRange} onValueChange={setPriceRange}>
-              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
-                <SelectValue placeholder='Price Range' />
-              </SelectTrigger>
-              <SelectContent className='bg-slate-800 border-white/20'>
-                <SelectItem value='all' className='text-white'>
-                  All Prices
-                </SelectItem>
-                <SelectItem value='under-75' className='text-white'>
-                  Under $75/hr
-                </SelectItem>
-                <SelectItem value='75-90' className='text-white'>
-                  $75-90/hr
-                </SelectItem>
-                <SelectItem value='over-90' className='text-white'>
-                  Over $90/hr
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select
-              value={availabilityFilter}
-              onValueChange={setAvailabilityFilter}
-            >
-              <SelectTrigger className='bg-white/10 border-white/20 text-white'>
-                <SelectValue placeholder='Availability' />
-              </SelectTrigger>
-              <SelectContent className='bg-slate-800 border-white/20'>
-                <SelectItem value='all' className='text-white'>
-                  All Trainers
-                </SelectItem>
-                <SelectItem value='Available' className='text-white'>
-                  Available
-                </SelectItem>
-                <SelectItem value='Busy' className='text-white'>
-                  Busy
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className='flex items-center space-x-2'>
-              <Checkbox
-                id='verified'
-                checked={verifiedOnly}
-                onCheckedChange={handleVerifiedOnlyChange}
-                className='border-white/20 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600'
-              />
-              <label
-                htmlFor='verified'
-                className='text-sm text-white cursor-pointer'
-              >
-                Verified Only
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Results Count */}
-        <div className='mb-6'>
-          <p className='text-white/70'>
-            Showing {filteredTrainers.length} of {trainers.length} trainers
-          </p>
-        </div>
-
-        {/* Trainers Grid */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-          {filteredTrainers.map((trainer) => (
-            <Card
-              key={trainer.id}
-              className='bg-white/10 border-white/20 backdrop-blur-sm hover:bg-white/15 transition-all duration-300 hover:scale-105'
-            >
-              <CardHeader className='pb-4'>
-                <div className='flex items-start justify-between'>
-                  <div className='flex items-center space-x-3'>
-                    <Avatar className='h-12 w-12'>
-                      <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
-                        {trainer.avatar}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className='flex items-center space-x-2'>
-                        <CardTitle className='text-white text-lg'>
-                          {trainer.name}
-                        </CardTitle>
-                        {trainer.verified && (
-                          <Badge className='bg-green-600 text-white text-xs'>
-                            <Award className='h-3 w-3 mr-1' />
-                            Verified
-                          </Badge>
-                        )}
-                      </div>
-                      <div className='flex items-center space-x-1 mt-1'>
-                        <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-                        <span className='text-white text-sm'>
-                          {trainer.rating}
-                        </span>
-                        <span className='text-white/60 text-sm'>
-                          ({trainer.reviews} reviews)
-                        </span>
+                {/* Conversations List */}
+                <div className='flex-1 overflow-y-auto'>
+                  {conversations.map((conversation) => (
+                    <div
+                      key={conversation.id}
+                      className={`p-4 border-b border-white/10 cursor-pointer transition-all duration-200 hover:bg-white/10 ${
+                        selectedConversation.id === conversation.id
+                          ? 'bg-white/20'
+                          : ''
+                      }`}
+                      onClick={() => setSelectedConversation(conversation)}
+                    >
+                      <div className='flex items-center space-x-3'>
+                        <div className='relative'>
+                          <Avatar className='h-12 w-12'>
+                            <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                              {conversation.avatar}
+                            </AvatarFallback>
+                          </Avatar>
+                          {conversation.online && (
+                            <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800'></div>
+                          )}
+                        </div>
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-center justify-between'>
+                            <h3 className='text-white font-medium truncate'>
+                              {conversation.name}
+                            </h3>
+                            <span className='text-xs text-white/60'>
+                              {conversation.timestamp}
+                            </span>
+                          </div>
+                          <p className='text-sm text-white/60 mb-1'>
+                            {conversation.role}
+                          </p>
+                          <div className='flex items-center justify-between'>
+                            <p className='text-sm text-white/80 truncate'>
+                              {conversation.lastMessage}
+                            </p>
+                            {conversation.unread > 0 && (
+                              <Badge className='bg-purple-600 text-white text-xs ml-2'>
+                                {conversation.unread}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <Badge
-                    className={`${
-                      trainer.availability === 'Available'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-orange-600 text-white'
-                    }`}
-                  >
-                    {trainer.availability}
-                  </Badge>
-                </div>
-              </CardHeader>
-
-              <CardContent className='space-y-4'>
-                <p className='text-white/80 text-sm'>{trainer.bio}</p>
-
-                <div className='space-y-2'>
-                  <div className='flex items-center space-x-2 text-sm text-white/70'>
-                    <Users className='h-4 w-4' />
-                    <span>{trainer.experience} experience</span>
-                  </div>
-                  <div className='flex items-center space-x-2 text-sm text-white/70'>
-                    <MapPin className='h-4 w-4' />
-                    <span>{trainer.location}</span>
-                  </div>
-                  <div className='flex items-center space-x-2 text-sm text-white/70'>
-                    <DollarSign className='h-4 w-4' />
-                    <span>${trainer.hourlyRate}/hour</span>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className='text-white font-medium text-sm mb-2'>
-                    Specializations
-                  </h4>
-                  <div className='flex flex-wrap gap-1'>
-                    {trainer.specializations.map((spec) => (
-                      <Badge
-                        key={spec}
-                        className='bg-purple-600/20 text-purple-300 border-purple-400/20 text-xs'
-                      >
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className='text-white font-medium text-sm mb-2'>
-                    Certifications
-                  </h4>
-                  <div className='flex flex-wrap gap-1'>
-                    {trainer.certifications.map((cert) => (
-                      <Badge
-                        key={cert}
-                        className='bg-blue-600/20 text-blue-300 border-blue-400/20 text-xs'
-                      >
-                        {cert}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className='flex space-x-2 pt-4'>
-                  <Button className='flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'>
-                    View Profile
-                  </Button>
-                  <Button
-                    variant='outline'
-                    className='border-white/20 text-white hover:bg-white/10 bg-transparent'
-                  >
-                    <Calendar className='h-4 w-4' />
-                  </Button>
+                  ))}
                 </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
-
-        {filteredTrainers.length === 0 && (
-          <div className='text-center py-12'>
-            <div className='text-white/60 text-lg mb-2'>No trainers found</div>
-            <p className='text-white/40'>Try adjusting your search criteria</p>
           </div>
-        )}
+
+          {/* Chat Area */}
+          <div className='lg:col-span-2'>
+            <Card className='h-full bg-white/10 border-white/20 backdrop-blur-sm'>
+              <CardContent className='p-0 h-full flex flex-col'>
+                {/* Chat Header */}
+                <div className='p-4 border-b border-white/10 flex items-center justify-between'>
+                  <div className='flex items-center space-x-3'>
+                    <div className='relative'>
+                      <Avatar className='h-10 w-10'>
+                        <AvatarFallback className='bg-gradient-to-r from-purple-600 to-blue-600 text-white'>
+                          {selectedConversation.avatar}
+                        </AvatarFallback>
+                      </Avatar>
+                      {selectedConversation.online && (
+                        <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-800'></div>
+                      )}
+                    </div>
+                    <div>
+                      <h3 className='text-white font-medium'>
+                        {selectedConversation.name}
+                      </h3>
+                      <p className='text-sm text-white/60'>
+                        {selectedConversation.role}
+                      </p>
+                    </div>
+                  </div>
+                  <div className='flex items-center space-x-2'>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='text-white hover:bg-white/10'
+                    >
+                      <Phone className='h-5 w-5' />
+                    </Button>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='text-white hover:bg-white/10'
+                    >
+                      <Video className='h-5 w-5' />
+                    </Button>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='text-white hover:bg-white/10'
+                    >
+                      <MoreVertical className='h-5 w-5' />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Messages */}
+                <div className='flex-1 overflow-y-auto p-4 space-y-4'>
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${
+                        message.isOwn ? 'justify-end' : 'justify-start'
+                      }`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          message.isOwn
+                            ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
+                            : 'bg-white/20 text-white backdrop-blur-sm'
+                        }`}
+                      >
+                        <p className='text-sm'>{message.content}</p>
+                        <p
+                          className={`text-xs mt-1 ${
+                            message.isOwn ? 'text-white/80' : 'text-white/60'
+                          }`}
+                        >
+                          {message.timestamp}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Message Input */}
+                <div className='p-4 border-t border-white/10'>
+                  <div className='flex items-center space-x-2'>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='text-white hover:bg-white/10'
+                    >
+                      <Paperclip className='h-5 w-5' />
+                    </Button>
+                    <div className='flex-1 relative'>
+                      <Input
+                        placeholder='Type a message...'
+                        value={messageInput}
+                        onChange={(e) => setMessageInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        className='bg-white/10 border-white/20 text-white placeholder:text-white/60 pr-12'
+                      />
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='absolute right-1 top-1/2 transform -translate-y-1/2 text-white hover:bg-white/10'
+                      >
+                        <Smile className='h-4 w-4' />
+                      </Button>
+                    </div>
+                    <Button
+                      onClick={handleSendMessage}
+                      className='bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0'
+                    >
+                      <Send className='h-4 w-4' />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
