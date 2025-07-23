@@ -294,7 +294,7 @@ export default function ComingSoonPage() {
                 <Button
                   type='submit'
                   size='lg'
-                  className='w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold text-lg rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 border-0 !bg-gradient-to-r !from-purple-600 !to-blue-600'
+                  className='w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold text-lg rounded-lg shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 border-0'
                   disabled={isSubmitting}
                   style={{
                     background:

@@ -51,25 +51,16 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log('Dashboard mounted, checking session...');
     checkSession();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(
-        'Dashboard - Auth state changed:',
-        event,
-        session?.user?.email || 'no user'
-      );
-
       if (event === 'SIGNED_OUT' || !session) {
-        console.log('User signed out or no session, redirecting to login');
         setUser(null);
         router.replace('/login');
       } else if (session) {
-        console.log('Session found, setting user:', session.user.email);
         setUser(session.user);
         setLoading(false);
       }
@@ -80,19 +71,11 @@ export default function DashboardPage() {
 
   const checkSession = async () => {
     try {
-      console.log('Dashboard - Checking session...');
 
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
-
-      console.log('Dashboard - Session check result:', {
-        hasSession: !!session,
-        hasUser: !!session?.user,
-        userEmail: session?.user?.email,
-        error: sessionError,
-      });
 
       if (sessionError) {
         console.error('Session error:', sessionError);
@@ -102,13 +85,11 @@ export default function DashboardPage() {
       }
 
       if (!session || !session.user) {
-        console.log('No session or user found, redirecting to login');
         setLoading(false);
         router.replace('/login');
         return;
       }
 
-      console.log('Session found for user:', session.user.email);
       setUser(session.user);
       setLoading(false);
     } catch (error) {
