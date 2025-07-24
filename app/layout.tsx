@@ -1,27 +1,27 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
-import { AnalyticsProvider } from "@/components/analytics-provider"
-import { Suspense } from "react"
-import { Toaster } from "@/components/ui/toaster"
+import type React from 'react';
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import '@/styles/globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
+import { AnalyticsProvider } from '@/components/analytics-provider';
+import { Suspense } from 'react';
+import { Toaster } from '@/components/ui/toaster';
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "FuelForm - Connect. Train. Transform.",
+  title: 'FuelForm - Connect. Train. Transform.',
   description:
-    "The all-in-one platform that connects fitness enthusiasts with certified personal trainers for custom workouts, nutrition plans, and ongoing support.",
-}
+    'The all-in-one platform that connects fitness enthusiasts with certified personal trainers for custom workouts, nutrition plans, and ongoing support.',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang='en' suppressHydrationWarning>
       <head>
         {/* Google Analytics */}
         <script
@@ -40,7 +40,12 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute='class'
+          defaultTheme='system'
+          enableSystem
+          disableTransitionOnChange
+        >
           <Suspense fallback={null}>
             <AnalyticsProvider>{children}</AnalyticsProvider>
           </Suspense>
@@ -48,5 +53,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

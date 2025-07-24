@@ -15,6 +15,7 @@ import {
 import { HeroLogo } from '@/components/hero-logo';
 import { Menu, X, Settings, LogOut } from 'lucide-react';
 import { getCurrentUser, signOut, type User } from '@/lib/auth';
+import { ThemeToggle } from './theme-toggle';
 
 interface NavigationHeaderProps {
   user?: User | null;
