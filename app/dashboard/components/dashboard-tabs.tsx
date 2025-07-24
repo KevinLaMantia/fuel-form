@@ -5,7 +5,7 @@ import OverviewTab from './overview-tab';
 import WorkoutsTab from './workouts-tab';
 import ProgressTab from './progress-tab';
 import NutritionTab from './nutrition-tab';
-import { NextRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface Workout {
   id: number;
@@ -55,7 +55,6 @@ interface DashboardTabsProps {
   recentActivities: Activity[];
   workoutPlans: WorkoutPlan[];
   nutritionMeals: NutritionMeal[];
-  router: NextRouter;
 }
 
 export default function DashboardTabs({
@@ -64,8 +63,8 @@ export default function DashboardTabs({
   recentActivities,
   workoutPlans,
   nutritionMeals,
-  router,
 }: DashboardTabsProps) {
+  const router = useRouter();
   return (
     <Tabs defaultValue='overview' className='space-y-4'>
       <TabsList className='bg-white/10 backdrop-blur-lg border border-white/20'>
@@ -100,7 +99,6 @@ export default function DashboardTabs({
           stats={stats}
           upcomingWorkouts={upcomingWorkouts}
           recentActivities={recentActivities}
-          router={router}
         />
       </TabsContent>
       <TabsContent value='workouts' className='space-y-4'>

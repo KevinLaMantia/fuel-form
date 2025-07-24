@@ -2,19 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
-import { NextRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface WelcomeSectionProps {
   user: any;
   getUserName: (user: any) => string;
-  router: NextRouter;
 }
 
 export default function WelcomeSection({
   user,
   getUserName,
-  router,
 }: WelcomeSectionProps) {
+  const router = useRouter();
   return (
     <div className='flex items-center justify-between mb-6'>
       <div>

@@ -213,7 +213,7 @@ export default function DashboardPage() {
     <div className='min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900'>
       <NavigationHeader user={user} />
       <div className='container mx-auto p-4 space-y-6'>
-        <WelcomeSection user={user} getUserName={getUserName} router={router} />
+        <WelcomeSection user={user} getUserName={getUserName} />
         <StatsCards stats={stats} />
         <DashboardTabs
           stats={stats}
@@ -221,7 +221,6 @@ export default function DashboardPage() {
           recentActivities={recentActivities}
           workoutPlans={workoutPlans}
           nutritionMeals={nutritionMeals}
-          router={router}
         />
       </div>
     </div>

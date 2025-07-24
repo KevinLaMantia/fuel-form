@@ -21,7 +21,7 @@ import {
   Calendar,
   MessageCircle as MessageIcon,
 } from 'lucide-react';
-import { NextRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 interface Workout {
   id: number;
@@ -52,7 +52,6 @@ interface OverviewTabProps {
   stats: Stats;
   upcomingWorkouts: Workout[];
   recentActivities: Activity[];
-  router: NextRouter;
 }
 
 const iconMap = {
@@ -66,8 +65,8 @@ export default function OverviewTab({
   stats,
   upcomingWorkouts,
   recentActivities,
-  router,
 }: OverviewTabProps) {
+  const router = useRouter();
   const weeklyProgress = (stats.completedThisWeek / stats.weeklyGoal) * 100;
 
   return (
@@ -139,32 +138,32 @@ export default function OverviewTab({
         </div>
         {/* Recent Activities Card */}
         {/* <div className='lg:col-span-1'> */}
-          <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
-            <CardHeader>
-              <CardTitle className='text-white'>Recent Activity</CardTitle>
-              <CardDescription className='text-white/60'>
-                Your latest achievements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className='space-y-4'>
-              {recentActivities.map((activity, index) => {
-                const Icon = iconMap[activity.icon as keyof typeof iconMap];
-                return (
-                  <div key={index} className='flex items-center space-x-3'>
-                    <div className={`p-2 rounded-lg ${activity.bgColor}`}>
-                      <Icon className={`h-4 w-4 ${activity.color}`} />
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-sm font-medium text-white truncate'>
-                        {activity.title}
-                      </p>
-                      <p className='text-xs text-white/50'>{activity.time}</p>
-                    </div>
+        <Card className='bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl'>
+          <CardHeader>
+            <CardTitle className='text-white'>Recent Activity</CardTitle>
+            <CardDescription className='text-white/60'>
+              Your latest achievements
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            {recentActivities.map((activity, index) => {
+              const Icon = iconMap[activity.icon as keyof typeof iconMap];
+              return (
+                <div key={index} className='flex items-center space-x-3'>
+                  <div className={`p-2 rounded-lg ${activity.bgColor}`}>
+                    <Icon className={`h-4 w-4 ${activity.color}`} />
                   </div>
-                );
-              })}
-            </CardContent>
-          </Card>
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-sm font-medium text-white truncate'>
+                      {activity.title}
+                    </p>
+                    <p className='text-xs text-white/50'>{activity.time}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
         {/* </div> */}
       </div>
       <div className='grid grid-cols-1 lg:grid-cols-4 gap-6'>
